@@ -5,10 +5,6 @@ plugins {
 	alias(libs.plugins.dokkatoo)
 }
 
-kotlin {
-	jvm()
-
-	sourceSets.commonMain.dependencies {
-		implementation(projects.driverBlocking)
-	}
+dependencies {
+	implementation(projects.driverSync)
 }

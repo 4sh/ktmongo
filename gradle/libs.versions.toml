@@ -1,9 +1,18 @@
 [versions]
 kotlin = "1.9.22"
+kotlinx-coroutines = "1.8.0"
 dokkatoo = "2.2.0"
+mongodb-driver = "5.0.0"
 
 [plugins]
-kotlin = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 dokkatoo = { id = "dev.adamko.dokkatoo-html", version.ref = "dokkatoo" }
 
 [libraries]
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+
+mongodb-bson = { module = "org.mongodb:bson", version.ref = "mongodb-driver" }
+mongodb-sync = { module = "org.mongodb:mongodb-driver-kotlin-sync", version.ref = "mongodb-driver" }
+mongodb-coroutines = { module = "org.mongodb:mongodb-driver-kotlin-coroutine", version.ref = "mongodb-driver" }
+

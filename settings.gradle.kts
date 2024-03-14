@@ -16,7 +16,7 @@ plugins {
 
 include(
 	"dsl",
-	"driver-blocking",
+	"driver-sync",
 	"driver-coroutines",
 	"demo",
 )

@@ -5,10 +5,8 @@ plugins {
 	alias(libs.plugins.dokkatoo)
 }
 
-kotlin {
-	jvm()
+dependencies {
+	api(projects.dsl)
 
-	sourceSets.commonMain.dependencies {
-		api(projects.dsl)
-	}
+	api(libs.mongodb.sync)
 }
