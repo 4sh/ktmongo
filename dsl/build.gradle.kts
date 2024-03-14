@@ -6,4 +6,7 @@ plugins {
 }
 
 dependencies {
+	implementation(libs.mongodb.bson)
+
+	testImplementation(libs.bundles.kotest)
 }
