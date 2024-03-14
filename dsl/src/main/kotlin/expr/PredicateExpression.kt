@@ -5,6 +5,7 @@ import fr.qsh.ktmongo.dsl.buildArray
 import fr.qsh.ktmongo.dsl.buildDocument
 import fr.qsh.ktmongo.dsl.path.path
 import org.bson.BsonDocumentWriter
+import org.bson.BsonType
 import org.bson.codecs.configuration.CodecRegistry
 import kotlin.reflect.KProperty1
 
@@ -189,6 +190,33 @@ class PredicateExpression<T>(
 	 */
 	fun KProperty1<T, *>.doesNotExist() {
 		this { doesNotExist() }
+	}
+
+	/**
+	 * Selects documents where the value of the field is an instance of the specified BSON [type].
+	 *
+	 * Querying by data type is useful when dealing with highly unstructured data where data types
+	 * are not predictable.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Any,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age hasType BsonType.STRING
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/type/)
+	 */
+	infix fun KProperty1<T, *>.hasType(type: BsonType) {
+		this { hasType(type) }
 	}
 
 }

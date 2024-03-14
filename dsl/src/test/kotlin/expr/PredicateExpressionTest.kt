@@ -1,6 +1,7 @@
 package fr.qsh.ktmongo.dsl.expr
 
 import io.kotest.core.spec.style.FunSpec
+import org.bson.BsonType
 
 @Suppress("unused")
 class PredicateExpressionTest : FunSpec({
@@ -18,6 +19,7 @@ class PredicateExpressionTest : FunSpec({
 	val and = "\$and"
 	val or = "\$or"
 	val exists = "\$exists"
+	val type = "\$type"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -65,6 +67,32 @@ class PredicateExpressionTest : FunSpec({
 				{
 					"age": {
 						"$exists": false
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $type") {
+		test("String") {
+			predicate {
+				User::age hasType BsonType.STRING
+			} shouldBeBson """
+				{
+					"age": {
+						"$type": 2
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Null") {
+			predicate {
+				User::age hasType BsonType.NULL
+			} shouldBeBson """
+				{
+					"age": {
+						"$type": 10
 					}
 				}
 			""".trimIndent()
