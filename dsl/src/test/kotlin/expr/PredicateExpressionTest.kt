@@ -20,6 +20,7 @@ class PredicateExpressionTest : FunSpec({
 	val or = "\$or"
 	val exists = "\$exists"
 	val type = "\$type"
+	val not = "\$not"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -93,6 +94,58 @@ class PredicateExpressionTest : FunSpec({
 				{
 					"age": {
 						"$type": 10
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Is null") {
+			predicate {
+				User::name.isNull()
+			} shouldBeBson """
+				{
+					"name": {
+						"$type": 10
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Is undefined") {
+			predicate {
+				User::name.isUndefined()
+			} shouldBeBson """
+				{
+					"name": {
+						"$type": 6
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Is not null") {
+			predicate {
+				User::name.isNotNull()
+			} shouldBeBson """
+				{
+					"name": {
+						"$not": {
+							"$type": 10
+						}
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Is not undefined") {
+			predicate {
+				User::name.isNotUndefined()
+			} shouldBeBson """
+				{
+					"name": {
+						"$not": {
+							"$type": 6
+						}
 					}
 				}
 			""".trimIndent()

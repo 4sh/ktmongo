@@ -144,4 +144,136 @@ class TargetedPredicateExpression<T>(
 			writer.writeInt32(type.value)
 		}
 	}
+
+	/**
+	 * Performs a logical `NOT` operation on the specified [expression] and selects the
+	 * documents that *do not* match the expression. This includes the elements
+	 * that do not contain the field.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age {
+	 *         not {
+	 *             hasType(BsonType.STRING)
+	 *         }
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
+	 */
+	inline fun not(expression: TargetedPredicateExpression<T>.() -> Unit) {
+		writer.buildDocument("\$not") {
+			TargetedPredicateExpression<T>(writer, codec).apply(expression)
+		}
+	}
+
+	/**
+	 * Selects documents for which the field is `null`.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { isNull() }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isNotNull
+	 */
+	fun isNull() =
+		hasType(BsonType.NULL)
+
+	/**
+	 * Selects documents for which the field is not `null`.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { isNotNull() }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isNull
+	 */
+	fun isNotNull() =
+		not { isNull() }
+
+	/**
+	 * Selects documents for which the field is `undefined`.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { isUndefined() }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isNotUndefined
+	 */
+	fun isUndefined() =
+		hasType(BsonType.UNDEFINED)
+
+	/**
+	 * Selects documents for which the field is not `undefined`.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { isNotUndefined() }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isUndefined
+	 */
+	fun isNotUndefined() =
+		not { isUndefined() }
 }
