@@ -5,7 +5,8 @@ plugins {
 	alias(libs.plugins.dokkatoo)
 }
 
-kotlin {
-	jvm()
-	linuxX64() // unused for now, just there to block common code from using JVM-specific functionality
+dependencies {
+	implementation(libs.mongodb.bson)
+
+	testImplementation(libs.bundles.kotest)
 }
