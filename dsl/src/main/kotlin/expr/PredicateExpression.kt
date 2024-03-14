@@ -141,4 +141,54 @@ class PredicateExpression<T>(
 		this { eq(value) }
 	}
 
+	/**
+	 * Matches documents that contain the specified field, including
+	 * values where the field value is `null`.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age.exists()
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 */
+	fun KProperty1<T, *>.exists() {
+		this { exists() }
+	}
+
+	/**
+	 * Matches documents that do not contain the specified field.
+	 * Documents where the field if `null` are counted as existing.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age.doesNotExist()
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 */
+	fun KProperty1<T, *>.doesNotExist() {
+		this { doesNotExist() }
+	}
+
 }

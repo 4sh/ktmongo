@@ -17,6 +17,7 @@ class PredicateExpressionTest : FunSpec({
 	val eq = "\$eq"
 	val and = "\$and"
 	val or = "\$or"
+	val exists = "\$exists"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -38,6 +39,32 @@ class PredicateExpressionTest : FunSpec({
 				{
 					"name": {
 						"$eq": null
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $exists") {
+		test("Exists") {
+			predicate {
+				User::age.exists()
+			} shouldBeBson """
+				{
+					"age": {
+						"$exists": true
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Does not exist") {
+			predicate {
+				User::age.doesNotExist()
+			} shouldBeBson """
+				{
+					"age": {
+						"$exists": false
 					}
 				}
 			""".trimIndent()

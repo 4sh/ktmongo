@@ -54,4 +54,62 @@ class TargetedPredicateExpression<T>(
 			}
 		}
 	}
+
+	/**
+	 * Matches documents that contain the specified field, including
+	 * values where the field value is `null`.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name {
+	 *         exists()
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 */
+	fun exists() {
+		writer.buildDocument("\$exists") {
+			writer.writeBoolean(true)
+		}
+	}
+
+	/**
+	 * Matches documents that do not contain the specified field.
+	 * Documents where the field if `null` are counted as existing.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name {
+	 *         doesNotExist()
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 */
+	fun doesNotExist() {
+		writer.buildDocument("\$exists") {
+			writer.writeBoolean(false)
+		}
+	}
 }
