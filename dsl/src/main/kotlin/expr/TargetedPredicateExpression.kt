@@ -59,6 +59,43 @@ class TargetedPredicateExpression<T>(
 	}
 
 	/**
+	 * Matches documents where the value of a field equals [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all documents are matched).
+	 *
+	 * ### Example
+	 *
+	 * This operator is useful to simplify searches when the criteria is optional.
+	 * For example, instead of writing:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::name {
+	 *         if (criteria.name != null)
+	 *             eq(criteria.name)
+	 *     }
+	 * }
+	 * ```
+	 * this operator can be used instead:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::name {
+	 *         eqNotNull(criteria.name)
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
+	 *
+	 * @see PredicateExpression.eqNotNull Shorthand.
+	 * @see eq Equality filter.
+	 */
+	fun eqNotNull(value: T?) {
+		if (value != null) eq(value)
+	}
+
+	/**
 	 * Matches documents that contain the specified field, including
 	 * values where the field value is `null`.
 	 *
