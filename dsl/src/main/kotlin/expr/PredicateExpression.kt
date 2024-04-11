@@ -7,6 +7,7 @@ import fr.qsh.ktmongo.dsl.path.path
 import org.bson.BsonDocumentWriter
 import org.bson.BsonType
 import org.bson.codecs.configuration.CodecRegistry
+import kotlin.internal.OnlyInputTypes
 import kotlin.reflect.KProperty1
 
 /**
@@ -122,7 +123,7 @@ class PredicateExpression<T>(
 	 * ```
 	 */
 	@OptIn(LowLevelApi::class)
-	inline operator fun <V> KProperty1<T, V>.invoke(block: TargetedPredicateExpression<V>.() -> Unit) {
+	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: TargetedPredicateExpression<V>.() -> Unit) {
 		writer.buildDocument(this.path().toString()) {
 			TargetedPredicateExpression<V>(writer, codec).apply(block)
 		}
@@ -152,7 +153,7 @@ class PredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
 	 */
-	inline infix fun <V> KProperty1<T, V>.not(expression: TargetedPredicateExpression<V>.() -> Unit) {
+	inline infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: TargetedPredicateExpression<V>.() -> Unit) {
 		this { this.not(expression) }
 	}
 
@@ -176,7 +177,7 @@ class PredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
 	 */
-	infix fun <V> KProperty1<T, V>.eq(value: V) {
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.eq(value: V) {
 		this { eq(value) }
 	}
 
@@ -208,7 +209,7 @@ class PredicateExpression<T>(
 	 *
 	 * @see eq Equality filter.
 	 */
-	infix fun <V> KProperty1<T, V>.eqNotNull(value: V?) {
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.eqNotNull(value: V?) {
 		this { eqNotNull(value) }
 	}
 
