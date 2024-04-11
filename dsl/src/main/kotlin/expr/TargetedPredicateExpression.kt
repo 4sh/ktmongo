@@ -43,6 +43,8 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
+	 *
+	 * @see PredicateExpression.eq Shorthand.
 	 */
 	fun eq(value: T) {
 		writer.buildDocument("\$eq") {
@@ -78,6 +80,10 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 *
+	 * @see PredicateExpression.exists Shorthand.
+	 * @see doesNotExist Opposite.
+	 * @see isNotNull Identical, but does not match elements where the field is `null`.
 	 */
 	fun exists() {
 		writer.buildDocument("\$exists") {
@@ -107,6 +113,10 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 *
+	 * @see PredicateExpression.doesNotExist Shorthand.
+	 * @see exists Opposite.
+	 * @see isNull Only matches elements that are specifically `null`.
 	 */
 	fun doesNotExist() {
 		writer.buildDocument("\$exists") {
@@ -138,6 +148,10 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/type/)
+	 *
+	 * @see PredicateExpression.hasType Shorthand.
+	 * @see isNull Checks if a value has the type [BsonType.NULL].
+	 * @see isUndefined Checks if a value has the type [BsonType.UNDEFINED].
 	 */
 	fun hasType(type: BsonType) {
 		writer.buildDocument("\$type") {
@@ -170,6 +184,8 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
+	 *
+	 * @see PredicateExpression.not Shorthand.
 	 */
 	inline fun not(expression: TargetedPredicateExpression<T>.() -> Unit) {
 		writer.buildDocument("\$not") {
@@ -197,7 +213,9 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isNotNull
+	 * @see PredicateExpression.isNull Shorthand.
+	 * @see doesNotExist Checks if the value is not set.
+	 * @see isNotNull Opposite.
 	 */
 	fun isNull() =
 		hasType(BsonType.NULL)
@@ -222,7 +240,8 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isNull
+	 * @see PredicateExpression.isNotNull Shorthand.
+	 * @see isNull Opposite.
 	 */
 	fun isNotNull() =
 		not { isNull() }
@@ -247,7 +266,8 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isNotUndefined
+	 * @see PredicateExpression.isUndefined Shorthand.
+	 * @see isNotUndefined Opposite.
 	 */
 	fun isUndefined() =
 		hasType(BsonType.UNDEFINED)
@@ -272,7 +292,8 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isUndefined
+	 * @see PredicateExpression.isNotUndefined Shorthand.
+	 * @see isUndefined Opposite.
 	 */
 	fun isNotUndefined() =
 		not { isUndefined() }

@@ -46,6 +46,8 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/and/)
+	 *
+	 * @see or Logical `OR` operation.
 	 */
 	@OptIn(LowLevelApi::class)
 	inline fun and(block: PredicateExpression<T>.() -> Unit) {
@@ -80,6 +82,8 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/or/)
+	 *
+	 * @see and Logical `AND` operation.
 	 */
 	@OptIn(LowLevelApi::class)
 	inline fun or(block: PredicateExpression<T>.() -> Unit) {
@@ -109,7 +113,13 @@ class PredicateExpression<T>(
 	 * ```
 	 *
 	 * Note that many operators available this way have a convenience function directly in this class to
-	 * shorten this. For this example, see [eq].
+	 * shorten this. For this example, see [eq]:
+	 *
+	 * ```kotlin
+	 * collection.find {
+	 *     User::name eq "foo"
+	 * }
+	 * ```
 	 */
 	@OptIn(LowLevelApi::class)
 	inline operator fun <V> KProperty1<T, V>.invoke(block: TargetedPredicateExpression<V>.() -> Unit) {
@@ -190,6 +200,9 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 *
+	 * @see doesNotExist Opposite.
+	 * @see isNotNull Identical, but does not match elements where the field is `null`.
 	 */
 	fun KProperty1<T, *>.exists() {
 		this { exists() }
@@ -197,7 +210,7 @@ class PredicateExpression<T>(
 
 	/**
 	 * Matches documents that do not contain the specified field.
-	 * Documents where the field if `null` are counted as existing.
+	 * Documents where the field if `null` are not matched.
 	 *
 	 * ### Example
 	 *
@@ -215,6 +228,9 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 *
+	 * @see exists Opposite.
+	 * @see isNull Only matches documents that are specifically `null`.
 	 */
 	fun KProperty1<T, *>.doesNotExist() {
 		this { doesNotExist() }
@@ -242,6 +258,9 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/type/)
+	 *
+	 * @see isNull Checks if a value has the type [BsonType.NULL].
+	 * @see isUndefined Checks if a value has the type [BsonType.UNDEFINED].
 	 */
 	infix fun KProperty1<T, *>.hasType(type: BsonType) {
 		this { hasType(type) }
@@ -266,6 +285,9 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see doesNotExist Checks if the value is not set.
+	 * @see isNotNull Opposite.
 	 */
 	fun KProperty1<T, *>.isNull() {
 		this { isNull() }
@@ -290,6 +312,8 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isNull Opposite.
 	 */
 	fun KProperty1<T, *>.isNotNull() {
 		this { isNotNull() }
@@ -314,6 +338,8 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isNotUndefined Opposite.
 	 */
 	fun KProperty1<T, *>.isUndefined() {
 		this { isUndefined() }
@@ -338,6 +364,8 @@ class PredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
+	 *
+	 * @see isUndefined Opposite.
 	 */
 	fun KProperty1<T, *>.isNotUndefined() {
 		this { isNotUndefined() }
