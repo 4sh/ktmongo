@@ -1,5 +1,6 @@
 package fr.qsh.ktmongo.dsl.expr
 
+import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.buildArray
 import fr.qsh.ktmongo.dsl.buildDocument
@@ -15,6 +16,7 @@ import kotlin.reflect.KProperty1
  *
  * For example, these operators are available when querying with `find`, or as the filter in `updateOne`.
  */
+@KtMongoDsl
 class PredicateExpression<T>(
 	@property:LowLevelApi
 	@PublishedApi
@@ -51,6 +53,7 @@ class PredicateExpression<T>(
 	 * @see or Logical `OR` operation.
 	 */
 	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
 	inline fun and(block: PredicateExpression<T>.() -> Unit) {
 		writer.buildDocument("\$and") {
 			writer.buildArray {
@@ -87,6 +90,7 @@ class PredicateExpression<T>(
 	 * @see and Logical `AND` operation.
 	 */
 	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
 	inline fun or(block: PredicateExpression<T>.() -> Unit) {
 		writer.buildDocument("\$or") {
 			writer.buildArray {
@@ -123,6 +127,7 @@ class PredicateExpression<T>(
 	 * ```
 	 */
 	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
 	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: TargetedPredicateExpression<V>.() -> Unit) {
 		writer.buildDocument(this.path().toString()) {
 			TargetedPredicateExpression<V>(writer, codec).apply(block)
@@ -153,6 +158,7 @@ class PredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
 	 */
+	@KtMongoDsl
 	inline infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: TargetedPredicateExpression<V>.() -> Unit) {
 		this { this.not(expression) }
 	}
@@ -177,6 +183,7 @@ class PredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
 	 */
+	@KtMongoDsl
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.eq(value: V) {
 		this { eq(value) }
 	}
@@ -209,6 +216,7 @@ class PredicateExpression<T>(
 	 *
 	 * @see eq Equality filter.
 	 */
+	@KtMongoDsl
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.eqNotNull(value: V?) {
 		this { eqNotNull(value) }
 	}
@@ -237,6 +245,7 @@ class PredicateExpression<T>(
 	 * @see doesNotExist Opposite.
 	 * @see isNotNull Identical, but does not match elements where the field is `null`.
 	 */
+	@KtMongoDsl
 	fun KProperty1<T, *>.exists() {
 		this { exists() }
 	}
@@ -265,6 +274,7 @@ class PredicateExpression<T>(
 	 * @see exists Opposite.
 	 * @see isNull Only matches documents that are specifically `null`.
 	 */
+	@KtMongoDsl
 	fun KProperty1<T, *>.doesNotExist() {
 		this { doesNotExist() }
 	}
@@ -295,6 +305,7 @@ class PredicateExpression<T>(
 	 * @see isNull Checks if a value has the type [BsonType.NULL].
 	 * @see isUndefined Checks if a value has the type [BsonType.UNDEFINED].
 	 */
+	@KtMongoDsl
 	infix fun KProperty1<T, *>.hasType(type: BsonType) {
 		this { hasType(type) }
 	}
@@ -322,6 +333,7 @@ class PredicateExpression<T>(
 	 * @see doesNotExist Checks if the value is not set.
 	 * @see isNotNull Opposite.
 	 */
+	@KtMongoDsl
 	fun KProperty1<T, *>.isNull() {
 		this { isNull() }
 	}
@@ -348,6 +360,7 @@ class PredicateExpression<T>(
 	 *
 	 * @see isNull Opposite.
 	 */
+	@KtMongoDsl
 	fun KProperty1<T, *>.isNotNull() {
 		this { isNotNull() }
 	}
@@ -374,6 +387,7 @@ class PredicateExpression<T>(
 	 *
 	 * @see isNotUndefined Opposite.
 	 */
+	@KtMongoDsl
 	fun KProperty1<T, *>.isUndefined() {
 		this { isUndefined() }
 	}
@@ -400,6 +414,7 @@ class PredicateExpression<T>(
 	 *
 	 * @see isUndefined Opposite.
 	 */
+	@KtMongoDsl
 	fun KProperty1<T, *>.isNotUndefined() {
 		this { isNotUndefined() }
 	}
