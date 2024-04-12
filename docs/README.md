@@ -11,7 +11,7 @@ To learn how to use KtMongo in your project and to learn about new MongoDB featu
 - Adding KtMongo to your project
 - [Connecting and configuring a database](guides/connect.md)
 - Saving data
-- Searching for data
+- [Searching for data](guides/search.md)
 - Referencing nested fields
 
 ## How to migrate from KMongo?
