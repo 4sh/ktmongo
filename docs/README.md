@@ -29,3 +29,4 @@ Deep dives into the choices we made and why.
 These documents are low-level descriptions of the technical decisions that went into creating this project, to ensure they are not lost to posterity. They are meant to be read by contributors to the project, and thus may not be approachable for beginners.
 
 - The operator DSL
+- [Documentation guidelines](design/documentation.md)
