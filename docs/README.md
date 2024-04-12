@@ -9,7 +9,7 @@ To learn about specific KtMongo features, functions or operators, see the Refere
 To learn how to use KtMongo in your project and to learn about new MongoDB features.
 
 - Adding KtMongo to your project
-- Connecting and configuring a database
+- [Connecting and configuring a database](guides/connect.md)
 - Saving data
 - Searching for data
 - Referencing nested fields
