@@ -19,7 +19,7 @@ To learn how to use KtMongo in your project and to learn about new MongoDB featu
 List of differences between KMongo and KtMongo to help you migrate your existing projects.
 
 - Using KMongo and KtMongo together
-- Referencing nested fields
+- [Referencing nested fields](migrate-from-kmongo/nested-fields.md)
 - The operator DSL
 
 ## Design documents
