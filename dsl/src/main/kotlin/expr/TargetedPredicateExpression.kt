@@ -1,5 +1,6 @@
 package fr.qsh.ktmongo.dsl.expr
 
+import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.buildDocument
 import org.bson.BsonDocumentWriter
@@ -13,6 +14,7 @@ import org.bson.codecs.configuration.CodecRegistry
  * specified.
  */
 @OptIn(LowLevelApi::class)
+@KtMongoDsl
 class TargetedPredicateExpression<T>(
 	@property:LowLevelApi
 	@PublishedApi
@@ -43,7 +45,10 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
+	 *
+	 * @see PredicateExpression.eq Shorthand.
 	 */
+	@KtMongoDsl
 	fun eq(value: T) {
 		writer.buildDocument("\$eq") {
 			if (value == null) {
@@ -54,6 +59,44 @@ class TargetedPredicateExpression<T>(
 					.encode(writer, value, EncoderContext.builder().build())
 			}
 		}
+	}
+
+	/**
+	 * Matches documents where the value of a field equals [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all documents are matched).
+	 *
+	 * ### Example
+	 *
+	 * This operator is useful to simplify searches when the criteria is optional.
+	 * For example, instead of writing:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::name {
+	 *         if (criteria.name != null)
+	 *             eq(criteria.name)
+	 *     }
+	 * }
+	 * ```
+	 * this operator can be used instead:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::name {
+	 *         eqNotNull(criteria.name)
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
+	 *
+	 * @see PredicateExpression.eqNotNull Shorthand.
+	 * @see eq Equality filter.
+	 */
+	@KtMongoDsl
+	fun eqNotNull(value: T?) {
+		if (value != null) eq(value)
 	}
 
 	/**
@@ -78,7 +121,12 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 *
+	 * @see PredicateExpression.exists Shorthand.
+	 * @see doesNotExist Opposite.
+	 * @see isNotNull Identical, but does not match elements where the field is `null`.
 	 */
+	@KtMongoDsl
 	fun exists() {
 		writer.buildDocument("\$exists") {
 			writer.writeBoolean(true)
@@ -107,7 +155,12 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
+	 *
+	 * @see PredicateExpression.doesNotExist Shorthand.
+	 * @see exists Opposite.
+	 * @see isNull Only matches elements that are specifically `null`.
 	 */
+	@KtMongoDsl
 	fun doesNotExist() {
 		writer.buildDocument("\$exists") {
 			writer.writeBoolean(false)
@@ -138,7 +191,12 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/type/)
+	 *
+	 * @see PredicateExpression.hasType Shorthand.
+	 * @see isNull Checks if a value has the type [BsonType.NULL].
+	 * @see isUndefined Checks if a value has the type [BsonType.UNDEFINED].
 	 */
+	@KtMongoDsl
 	fun hasType(type: BsonType) {
 		writer.buildDocument("\$type") {
 			writer.writeInt32(type.value)
@@ -170,7 +228,10 @@ class TargetedPredicateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
+	 *
+	 * @see PredicateExpression.not Shorthand.
 	 */
+	@KtMongoDsl
 	inline fun not(expression: TargetedPredicateExpression<T>.() -> Unit) {
 		writer.buildDocument("\$not") {
 			TargetedPredicateExpression<T>(writer, codec).apply(expression)
@@ -197,8 +258,11 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isNotNull
+	 * @see PredicateExpression.isNull Shorthand.
+	 * @see doesNotExist Checks if the value is not set.
+	 * @see isNotNull Opposite.
 	 */
+	@KtMongoDsl
 	fun isNull() =
 		hasType(BsonType.NULL)
 
@@ -222,8 +286,10 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isNull
+	 * @see PredicateExpression.isNotNull Shorthand.
+	 * @see isNull Opposite.
 	 */
+	@KtMongoDsl
 	fun isNotNull() =
 		not { isNull() }
 
@@ -247,8 +313,10 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isNotUndefined
+	 * @see PredicateExpression.isUndefined Shorthand.
+	 * @see isNotUndefined Opposite.
 	 */
+	@KtMongoDsl
 	fun isUndefined() =
 		hasType(BsonType.UNDEFINED)
 
@@ -272,8 +340,10 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see isUndefined
+	 * @see PredicateExpression.isNotUndefined Shorthand.
+	 * @see isUndefined Opposite.
 	 */
+	@KtMongoDsl
 	fun isNotUndefined() =
 		not { isUndefined() }
 }
