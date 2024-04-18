@@ -20,7 +20,7 @@ List of differences between KMongo and KtMongo to help you migrate your existing
 
 - Using KMongo and KtMongo together
 - [Referencing nested fields](migrate-from-kmongo/nested-fields.md)
-- The operator DSL
+- [The operator DSL](migrate-from-kmongo/dsl.md)
 
 ## Design documents
 
