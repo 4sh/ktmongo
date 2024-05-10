@@ -19,12 +19,22 @@ import kotlin.reflect.KProperty1
 @KtMongoDsl
 class FilterExpression<T>(
 	@property:LowLevelApi
-	@PublishedApi
-	internal val writer: BsonDocumentWriter,
+	val codec: CodecRegistry,
+) : AbstractExpression(codec) {
 
-	@PublishedApi
-	internal val codec: CodecRegistry,
-) {
+	// region Low-level operations
+
+	@LowLevelApi
+	override fun write(writer: BsonDocumentWriter, codec: CodecRegistry, children: List<ExpressionNode>) {
+		for (child in children) {
+			child.write(writer, codec)
+		}
+	}
+
+	@LowLevelApi
+	private sealed class FilterExpressionNode(codec: CodecRegistry) : AbstractExpressionNode(codec)
+
+	// endregion
 
 	/**
 	 * Performs a logical `AND` operation on one or more expressions,
@@ -54,10 +64,21 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun and(block: FilterExpression<T>.() -> Unit) {
-		writer.buildDocument("\$and") {
-			writer.buildArray {
-				block()
+	fun and(block: FilterExpression<T>.() -> Unit) {
+		accept(AndFilterExpressionNode(FilterExpression<T>(codec).apply(block), codec))
+	}
+
+	@LowLevelApi
+	private class AndFilterExpressionNode<T>(
+		val expression: FilterExpression<T>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument("\$and") {
+				writer.buildArray {
+					expression.write(writer, codec)
+				}
 			}
 		}
 	}
@@ -91,10 +112,21 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun or(block: FilterExpression<T>.() -> Unit) {
-		writer.buildDocument("\$or") {
-			writer.buildArray {
-				block()
+	fun or(block: FilterExpression<T>.() -> Unit) {
+		accept(OrFilterExpressionNode(FilterExpression<T>(codec).apply(block), codec))
+	}
+
+	@LowLevelApi
+	private class OrFilterExpressionNode<T>(
+		val expression: FilterExpression<T>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument("\$or") {
+				writer.buildArray {
+					expression.write(writer, codec)
+				}
 			}
 		}
 	}
@@ -128,9 +160,20 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: PredicateExpression<V>.() -> Unit) {
-		writer.buildDocument(this.path().toString()) {
-			PredicateExpression<V>(codec).apply(block).write(writer, codec)
+	operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: PredicateExpression<V>.() -> Unit) {
+		accept(PredicateInFilterExpression(this.path().toString(), PredicateExpression<V>(codec).apply(block), codec))
+	}
+
+	@LowLevelApi
+	private class PredicateInFilterExpression(
+		val target: String,
+		val expression: PredicateExpression<*>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument(target) {
+				expression.write(writer, codec)
+			}
 		}
 	}
 

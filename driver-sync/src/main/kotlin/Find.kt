@@ -45,8 +45,10 @@ fun <T : Any> MongoCollection<T>.find(): FindIterable<T> {
 fun <T : Any> MongoCollection<T>.find(predicate: FilterExpression<T>.() -> Unit): FindIterable<T> {
 	val bson = BsonDocument()
 
-	FilterExpression<T>(BsonDocumentWriter(bson), unsafe.codecRegistry)
-		.and(predicate) // use an 'and' as the default
+	FilterExpression<T>(unsafe.codecRegistry).apply {
+		and(predicate) // use an 'and' as the default
+		write(BsonDocumentWriter(bson), unsafe.codecRegistry)
+	}
 
 	return unsafe.find(bson.asDocument())
 }
