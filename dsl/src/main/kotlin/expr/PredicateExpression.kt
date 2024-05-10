@@ -495,5 +495,81 @@ class PredicateExpression<T>(
 			gt(value)
 	}
 
+
+	/**
+	 * Selects documents for which this field has a value greater or equal to [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { gte(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gte/)
+	 *
+	 * @see FilterExpression.gte
+	 * @see gteNotNull
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun gte(value: T) {
+		accept(GtePredicateExpressionNode(value, codec))
+	}
+
+	@LowLevelApi
+	private class GtePredicateExpressionNode<T>(
+		private val value: T,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+
+		@LowLevelApi
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$gte")
+				writer.writeObject(value, codec)
+			}
+		}
+	}
+
+	/**
+	 * Selects documents for which this field has a value greater or equal to [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { gteNotNull(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gte/)
+	 *
+	 * @see FilterExpression.gteNotNull
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	fun gteNotNull(value: T?) {
+		if (value != null)
+			gte(value)
+	}
+
 	// endregion
 }

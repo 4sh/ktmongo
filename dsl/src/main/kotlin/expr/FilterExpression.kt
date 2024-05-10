@@ -582,5 +582,62 @@ class FilterExpression<T>(
 		this { gtNotNull(value) }
 	}
 
+	/**
+	 * Selects documents for which this field has a value greater or equal to [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gte 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gte/)
+	 *
+	 * @see gteNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gte(value: V) {
+		this { gte(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value greater or equal to [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gteNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gte/)
+	 *
+	 * @see gte
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gteNotNull(value: V?) {
+		this { gteNotNull(value) }
+	}
+
 	// endregion
 }

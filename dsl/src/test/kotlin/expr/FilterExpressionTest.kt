@@ -304,14 +304,27 @@ class FilterExpressionTest : FunSpec({
 
 	context("Comparison operators") {
 		val gt = "\$gt"
+		val gte = "\$gte"
 
-		test("Greater than int") {
+		test("int $gt") {
 			filter {
 				User::age gt 12
 			} shouldBeBson """
 				{
 					"age": {
 						"$gt": 12
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("int $gte") {
+			filter {
+				User::age gte 12
+			} shouldBeBson """
+				{
+					"age": {
+						"$gte": 12
 					}
 				}
 			""".trimIndent()
