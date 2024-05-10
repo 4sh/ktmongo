@@ -84,6 +84,16 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
+		override fun simplify(): Expression? {
+			if (expression.children.isEmpty())
+				return null
+
+			if (expression.children.size == 1)
+				return expression
+
+			return super.simplify()
+		}
+
 		override fun write(writer: BsonWriter) {
 			writer.writeDocument {
 				writer.writeName("\$and")
@@ -132,6 +142,16 @@ class FilterExpression<T>(
 		val expression: FilterExpression<T>,
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
+
+		override fun simplify(): Expression? {
+			if (expression.children.isEmpty())
+				return null
+
+			if (expression.children.size == 1)
+				return expression
+
+			return super.simplify()
+		}
 
 		override fun write(writer: BsonWriter) {
 			writer.writeDocument {

@@ -177,6 +177,29 @@ class FilterExpressionTest : FunSpec({
 			""".trimIndent()
 		}
 
+		test("Empty $and") {
+			filter<User> {
+				and {}
+			} shouldBeBson """
+				{
+				}
+			""".trimIndent()
+		}
+
+		test("An $and with a single term is removed") {
+			filter {
+				and {
+					User::name eq "foo"
+				}
+			} shouldBeBson """
+				{
+					"name": {
+						"$eq": "foo"
+					}
+				}
+			""".trimIndent()
+		}
+
 		test("An automatic $and is generated when multiple filters are given") {
 			filter { // same example as the previous, but we didn't write the '$and'
 				User::name eq "foo"
@@ -219,6 +242,29 @@ class FilterExpressionTest : FunSpec({
 							}
 						}
 					]
+				}
+			""".trimIndent()
+		}
+
+		test("Empty $or") {
+			filter<User> {
+				or {}
+			} shouldBeBson """
+				{
+				}
+			""".trimIndent()
+		}
+
+		test("An $or with a single term is removed") {
+			filter {
+				or {
+					User::name eq "foo"
+				}
+			} shouldBeBson """
+				{
+					"name": {
+						"$eq": "foo"
+					}
 				}
 			""".trimIndent()
 		}
