@@ -38,6 +38,7 @@ class FilterExpression<T>(
 	private sealed class FilterExpressionNode(codec: CodecRegistry) : Expression(codec)
 
 	// endregion
+	// region $and, $or
 
 	/**
 	 * Performs a logical `AND` operation on one or more expressions,
@@ -173,6 +174,9 @@ class FilterExpression<T>(
 		}
 	}
 
+	// endregion
+	// region Predicate access
+
 	/**
 	 * Targets a single field to execute a [targeted predicate][PredicateExpression].
 	 *
@@ -221,6 +225,9 @@ class FilterExpression<T>(
 		}
 	}
 
+	// endregion
+	// region $not
+
 	/**
 	 * Performs a logical `NOT` operation on the specified [expression] and selects the
 	 * documents that *do not* match the expression. This includes the elements
@@ -249,6 +256,9 @@ class FilterExpression<T>(
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: PredicateExpression<V>.() -> Unit) {
 		this { this.not(expression) }
 	}
+
+	// endregion
+	// region $eq
 
 	/**
 	 * Matches documents where the value of a field equals the [value].
@@ -308,6 +318,9 @@ class FilterExpression<T>(
 		this { eqNotNull(value) }
 	}
 
+	// endregion
+	// region $exists
+
 	/**
 	 * Matches documents that contain the specified field, including
 	 * values where the field value is `null`.
@@ -365,6 +378,9 @@ class FilterExpression<T>(
 	fun KProperty1<T, *>.doesNotExist() {
 		this { doesNotExist() }
 	}
+
+	// endregion
+	// region $type
 
 	/**
 	 * Selects documents where the value of the field is an instance of the specified BSON [type].
@@ -506,6 +522,9 @@ class FilterExpression<T>(
 		this { isNotUndefined() }
 	}
 
+	// endregion
+	// region $gt, $gte, $lt, $lte
+
 	/**
 	 * Selects documents for which this field has a value strictly greater than [value].
 	 *
@@ -562,4 +581,6 @@ class FilterExpression<T>(
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gtNotNull(value: V?) {
 		this { gtNotNull(value) }
 	}
+
+	// endregion
 }

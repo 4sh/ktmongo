@@ -25,6 +25,7 @@ class PredicateExpression<T>(
 	private sealed class PredicateExpressionNode(codec: CodecRegistry) : Expression(codec)
 
 	// endregion
+	// region $eq
 
 	/**
 	 * Matches documents where the value of a field equals the [value].
@@ -112,6 +113,9 @@ class PredicateExpression<T>(
 		if (value != null) eq(value)
 	}
 
+	// endregion
+	// region $exists
+
 	/**
 	 * Matches documents that contain the specified field, including
 	 * values where the field value is `null`.
@@ -192,6 +196,9 @@ class PredicateExpression<T>(
 		accept(ExistsPredicateExpressionNode(false, codec))
 	}
 
+	// endregion
+	// region $type
+
 	/**
 	 * Selects documents where the value of the field is an instance of the specified BSON [type].
 	 *
@@ -239,6 +246,9 @@ class PredicateExpression<T>(
 			}
 		}
 	}
+
+	// endregion
+	// region $not
 
 	/**
 	 * Performs a logical `NOT` operation on the specified [expression] and selects the
@@ -294,6 +304,9 @@ class PredicateExpression<T>(
 			}
 		}
 	}
+
+	// endregion
+	// region Nullability
 
 	/**
 	 * Selects documents for which the field is `null`.
@@ -404,6 +417,9 @@ class PredicateExpression<T>(
 	fun isNotUndefined() =
 		not { isUndefined() }
 
+	// endregion
+	// region $gt, $gte, $lt, $lte
+
 	/**
 	 * Selects documents for which this field has a value strictly greater than [value].
 	 *
@@ -478,4 +494,6 @@ class PredicateExpression<T>(
 		if (value != null)
 			gt(value)
 	}
+
+	// endregion
 }
