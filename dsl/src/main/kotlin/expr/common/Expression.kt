@@ -25,6 +25,20 @@ abstract class Expression(
 ) {
 
 	/**
+	 * See [freeze].
+	 */
+	protected var frozen: Boolean = false
+		private set
+
+	/**
+	 * Forbid further mutations to this expression.
+	 */
+	@LowLevelApi
+	fun freeze() {
+		frozen = true
+	}
+
+	/**
 	 * Writes this expression into [writer] **exactly as it is described**.
 	 *
 	 * This function is not allowed to edit the expression in any way,

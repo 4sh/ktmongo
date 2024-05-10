@@ -42,9 +42,9 @@ abstract class CompoundExpression(
 	@LowLevelApi
 	@KtMongoDsl
 	fun accept(expression: Expression) {
-		// println("Adding child expression ${expression.toString(simplified = false)}") //TODO remove
-		// RuntimeException().printStackTrace()
+		require(!frozen) { "This expression has already been frozen, it cannot accept the child expression $expression" }
 
+		expression.freeze()
 		children += expression
 	}
 
