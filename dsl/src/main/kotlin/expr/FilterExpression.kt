@@ -756,4 +756,63 @@ class FilterExpression<T>(
 	}
 
 	// endregion
+	// region $in
+
+	/**
+	 * Selects documents for which this field is equal to one of the given [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name.isOneOf(listOf("Alfred", "Arthur"))
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/in/)
+	 *
+	 * @see or
+	 * @see eq
+	 */
+	@KtMongoDsl
+	fun <@OnlyInputTypes V> KProperty1<T, V>.isOneOf(values: List<V>) {
+		this { isOneOf(values) }
+	}
+
+	/**
+	 * Selects documents for which this field is equal to one of the given [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name.isOneOf("Alfred", "Arthur")
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/in/)
+	 *
+	 * @see or
+	 * @see eq
+	 */
+	@KtMongoDsl
+	fun <@OnlyInputTypes V> KProperty1<T, V>.isOneOf(vararg values: V) {
+		isOneOf(values.asList())
+	}
+
+	// endregion
 }

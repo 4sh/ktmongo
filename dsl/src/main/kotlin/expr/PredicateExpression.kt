@@ -1,11 +1,8 @@
 package fr.qsh.ktmongo.dsl.expr
 
-import fr.qsh.ktmongo.dsl.KtMongoDsl
-import fr.qsh.ktmongo.dsl.LowLevelApi
+import fr.qsh.ktmongo.dsl.*
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
-import fr.qsh.ktmongo.dsl.writeDocument
-import fr.qsh.ktmongo.dsl.writeObject
 import org.bson.BsonType
 import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
@@ -702,6 +699,83 @@ class PredicateExpression<T>(
 	fun lteNotNull(value: T?) {
 		if (value != null)
 			lte(value)
+	}
+
+	// endregion
+	// region $in
+
+	/**
+	 * Selects documents for which this field is equal to one of the given [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name {
+	 *         isOneOf(listOf("Alfred", "Arthur"))
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/in/)
+	 *
+	 * @see FilterExpression.isOneOf
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun isOneOf(values: List<T>) {
+		accept(OneOfPredicateExpressionNode(values, codec))
+	}
+
+	@LowLevelApi
+	private class OneOfPredicateExpressionNode<T>(
+		val values: List<T>,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+
+		@LowLevelApi
+		override fun write(writer: BsonWriter) {
+			writer.writeArray("\$in") {
+				for (value in values)
+					writer.writeObject(value, codec)
+			}
+		}
+	}
+
+	/**
+	 * Selects documents for which this field is equal to one of the given [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name {
+	 *         isOneOf("Alfred", "Arthur")
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/in/)
+	 *
+	 * @see FilterExpression.isOneOf
+	 */
+	@KtMongoDsl
+	fun isOneOf(vararg values: T) {
+		isOneOf(values.asList())
 	}
 
 	// endregion

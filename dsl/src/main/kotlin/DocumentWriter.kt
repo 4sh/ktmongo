@@ -38,6 +38,17 @@ internal inline fun BsonWriter.writeArray(block: () -> Unit) {
 	writeEndArray()
 }
 
+/**
+ * Helper to start an array, ensuring it is closed.
+ */
+@LowLevelApi
+@PublishedApi
+internal inline fun BsonWriter.writeArray(name: String, block: () -> Unit) {
+	writeStartArray(name)
+	block()
+	writeEndArray()
+}
+
 @LowLevelApi
 @PublishedApi
 internal fun <T> BsonWriter.writeObject(value: T, codec: CodecRegistry) {

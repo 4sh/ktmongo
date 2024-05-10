@@ -21,6 +21,7 @@ class FilterExpressionTest : FunSpec({
 	val exists = "\$exists"
 	val type = "\$type"
 	val not = "\$not"
+	val isOneOf = "\$in"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -42,6 +43,51 @@ class FilterExpressionTest : FunSpec({
 				{
 					"age": {
 						"$eq": null
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $isOneOf") {
+		test("With 0 elements") {
+			filter {
+				User::name.isOneOf()
+			} shouldBeBson """
+				{
+					"name": {
+						"$isOneOf": [
+						]
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("With 1 element") {
+			filter {
+				User::name.isOneOf("Alfred")
+			} shouldBeBson """
+				{
+					"name": {
+						"$isOneOf": [
+							"Alfred"
+						]
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("With multiple elements") {
+			filter {
+				User::name.isOneOf("Alfred", "Arthur", "Annabelle")
+			} shouldBeBson """
+				{
+					"name": {
+						"$isOneOf": [
+							"Alfred",
+							"Arthur",
+							"Annabelle"
+						]
 					}
 				}
 			""".trimIndent()
