@@ -15,7 +15,7 @@ import org.bson.codecs.configuration.CodecRegistry
  */
 @OptIn(LowLevelApi::class)
 @KtMongoDsl
-class TargetedPredicateExpression<T>(
+class PredicateExpression<T>(
 	@property:LowLevelApi
 	@PublishedApi
 	internal val writer: BsonDocumentWriter,
@@ -232,9 +232,9 @@ class TargetedPredicateExpression<T>(
 	 * @see FilterExpression.not Shorthand.
 	 */
 	@KtMongoDsl
-	inline fun not(expression: TargetedPredicateExpression<T>.() -> Unit) {
+	inline fun not(expression: PredicateExpression<T>.() -> Unit) {
 		writer.buildDocument("\$not") {
-			TargetedPredicateExpression<T>(writer, codec).apply(expression)
+			PredicateExpression<T>(writer, codec).apply(expression)
 		}
 	}
 

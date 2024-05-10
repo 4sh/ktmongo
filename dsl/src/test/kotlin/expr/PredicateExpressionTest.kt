@@ -3,16 +3,16 @@ package fr.qsh.ktmongo.dsl.expr
 import io.kotest.core.spec.style.FunSpec
 
 @Suppress("unused")
-class TargetedPredicateExpressionTest : FunSpec({
+class PredicateExpressionTest : FunSpec({
 
-	fun <T> targetedPredicate(block: TargetedPredicateExpression<T>.() -> Unit): String =
-		buildExpression(::TargetedPredicateExpression, block)
+	fun <T> predicate(block: PredicateExpression<T>.() -> Unit): String =
+		buildExpression(::PredicateExpression, block)
 
 	val eq = "\$eq"
 
 	context("Operator \$eq") {
 		test("Integer") {
-			targetedPredicate {
+			predicate {
 				eq(4)
 			} shouldBeBson """
 				{
@@ -22,7 +22,7 @@ class TargetedPredicateExpressionTest : FunSpec({
 		}
 
 		test("String") {
-			targetedPredicate {
+			predicate {
 				eq("foo")
 			} shouldBeBson """
 				{
@@ -32,7 +32,7 @@ class TargetedPredicateExpressionTest : FunSpec({
 		}
 
 		test("Null") {
-			targetedPredicate {
+			predicate {
 				eq(null)
 			} shouldBeBson """
 				{

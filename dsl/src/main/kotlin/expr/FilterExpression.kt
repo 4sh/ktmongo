@@ -100,7 +100,7 @@ class FilterExpression<T>(
 	}
 
 	/**
-	 * Targets a single field to execute a [targeted predicate][TargetedPredicateExpression].
+	 * Targets a single field to execute a [targeted predicate][PredicateExpression].
 	 *
 	 * ### Example
 	 *
@@ -128,9 +128,9 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: TargetedPredicateExpression<V>.() -> Unit) {
+	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: PredicateExpression<V>.() -> Unit) {
 		writer.buildDocument(this.path().toString()) {
-			TargetedPredicateExpression<V>(writer, codec).apply(block)
+			PredicateExpression<V>(writer, codec).apply(block)
 		}
 	}
 
@@ -159,7 +159,7 @@ class FilterExpression<T>(
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
 	 */
 	@KtMongoDsl
-	inline infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: TargetedPredicateExpression<V>.() -> Unit) {
+	inline infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: PredicateExpression<V>.() -> Unit) {
 		this { this.not(expression) }
 	}
 
