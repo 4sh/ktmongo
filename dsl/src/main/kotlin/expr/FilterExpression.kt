@@ -4,8 +4,6 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
-import fr.qsh.ktmongo.dsl.expr.common.acceptAll
-import fr.qsh.ktmongo.dsl.expr.common.empty
 import fr.qsh.ktmongo.dsl.path.path
 import fr.qsh.ktmongo.dsl.writeArray
 import fr.qsh.ktmongo.dsl.writeDocument
@@ -29,17 +27,11 @@ class FilterExpression<T>(
 	// region Low-level operations
 
 	@LowLevelApi
-	override fun simplify(children: List<Expression>): Expression =
+	override fun simplify(children: List<Expression>): Expression? =
 		when (children.size) {
-			0 -> Expression.empty(codec)
+			0 -> null
 			1 -> this
-			// else -> AndFilterExpressionNode(
-			// 	FilterExpression<T>(codec).apply {
-			// 		acceptAll(children)
-			// 	},
-			// 	codec,
-			// )
-			else -> this
+			else -> AndFilterExpressionNode<T>(children, codec)
 		}
 
 	@LowLevelApi
@@ -76,28 +68,28 @@ class FilterExpression<T>(
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	fun and(block: FilterExpression<T>.() -> Unit) {
-		accept(AndFilterExpressionNode(FilterExpression<T>(codec).apply(block), codec))
+		accept(AndFilterExpressionNode<T>(FilterExpression<T>(codec).apply(block).children, codec))
 	}
 
 	@LowLevelApi
 	private class AndFilterExpressionNode<T>(
-		val expression: FilterExpression<T>,
+		val declaredChildren: List<Expression>,
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
 		override fun simplify(): Expression? {
-			if (expression.children.isEmpty())
+			if (declaredChildren.isEmpty())
 				return null
 
-			if (expression.children.size == 1)
-				return expression
+			if (declaredChildren.size == 1)
+				return FilterExpression<T>(codec).apply { accept(declaredChildren.single()) }
 
 			// If there are nested $and operators, we combine them into the current one
 			val nestedChildren = ArrayList<Expression>()
 
-			for (child in expression.children) {
+			for (child in declaredChildren) {
 				if (child is AndFilterExpressionNode<*>) {
-					for (nestedChild in child.expression.children) {
+					for (nestedChild in child.declaredChildren) {
 						nestedChildren += nestedChild
 					}
 				} else {
@@ -105,19 +97,16 @@ class FilterExpression<T>(
 				}
 			}
 
-			return AndFilterExpressionNode(
-				FilterExpression<T>(codec).apply {
-					acceptAll(nestedChildren)
-				},
-				codec,
-			)
+			return AndFilterExpressionNode<T>(nestedChildren, codec)
 		}
 
 		override fun write(writer: BsonWriter) {
 			writer.writeDocument {
 				writer.writeName("\$and")
 				writer.writeArray {
-					expression.writeTo(writer)
+					for (child in declaredChildren) {
+						child.writeTo(writer)
+					}
 				}
 			}
 		}
@@ -153,21 +142,21 @@ class FilterExpression<T>(
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	fun or(block: FilterExpression<T>.() -> Unit) {
-		accept(OrFilterExpressionNode(FilterExpression<T>(codec).apply(block), codec))
+		accept(OrFilterExpressionNode<T>(FilterExpression<T>(codec).apply(block).children, codec))
 	}
 
 	@LowLevelApi
 	private class OrFilterExpressionNode<T>(
-		val expression: FilterExpression<T>,
+		val declaredChildren: List<Expression>,
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
 		override fun simplify(): Expression? {
-			if (expression.children.isEmpty())
+			if (declaredChildren.isEmpty())
 				return null
 
-			if (expression.children.size == 1)
-				return expression
+			if (declaredChildren.size == 1)
+				return FilterExpression<T>(codec).apply { accept(declaredChildren.single()) }
 
 			return super.simplify()
 		}
@@ -176,7 +165,9 @@ class FilterExpression<T>(
 			writer.writeDocument {
 				writer.writeName("\$or")
 				writer.writeArray {
-					expression.writeTo(writer)
+					for (child in declaredChildren) {
+						child.writeTo(writer)
+					}
 				}
 			}
 		}

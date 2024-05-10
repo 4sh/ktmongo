@@ -26,7 +26,7 @@ abstract class CompoundExpression(
 	private val _children = ArrayList<Expression>()
 
 	@LowLevelApi
-	val children: List<Expression>
+	protected val children: List<Expression>
 		get() = Collections.unmodifiableList(_children)
 
 	/**
@@ -68,11 +68,11 @@ abstract class CompoundExpression(
 	 * **These children have already been simplified.**
 	 */
 	@LowLevelApi
-	protected open fun simplify(children: List<Expression>): Expression =
+	protected open fun simplify(children: List<Expression>): Expression? =
 		this
 
 	@LowLevelApi
-	final override fun simplify(): Expression =
+	final override fun simplify(): Expression? =
 		simplify(children)
 
 	// endregion
