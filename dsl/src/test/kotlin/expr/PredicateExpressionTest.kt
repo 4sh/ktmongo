@@ -1,18 +1,40 @@
 package fr.qsh.ktmongo.dsl.expr
 
+import fr.qsh.ktmongo.dsl.LowLevelApi
+import fr.qsh.ktmongo.dsl.expr.common.withLoggedContext
+import fr.qsh.ktmongo.dsl.writeDocument
 import io.kotest.core.spec.style.FunSpec
+import org.bson.BsonDocument
+import org.bson.BsonDocumentWriter
 import org.bson.BsonType
 
+@OptIn(LowLevelApi::class)
 @Suppress("unused")
 class PredicateExpressionTest : FunSpec({
 
-	fun <T> predicate(block: PredicateExpression<T>.() -> Unit): String =
-		PredicateExpression<T>(testCodec()).apply(block).toString(simplified = true)
+	fun <T> predicate(block: PredicateExpression<T>.() -> Unit): String {
+		val document = BsonDocument()
+
+		val writer = BsonDocumentWriter(document)
+			.withLoggedContext()
+
+		writer.writeDocument {
+			PredicateExpression<T>(testCodec())
+				.apply(block)
+				.writeTo(writer)
+		}
+
+		return document.toString()
+	}
 
 	val eq = "\$eq"
 	val exists = "\$exists"
 	val type = "\$type"
 	val not = "\$not"
+	val gt = "\$gt"
+	val gte = "\$gte"
+	val lt = "\$lt"
+	val lte = "\$lte"
 
 	context("Operator \$eq") {
 		test("Integer") {
@@ -113,4 +135,25 @@ class PredicateExpressionTest : FunSpec({
 		}
 	}
 
+	test("Can specify multiple operators at once") {
+		predicate {
+			exists()
+			gt(15)
+			lte(99)
+			not {
+				isNull()
+				eq(17)
+			}
+		} shouldBeBson """
+			{
+				"$exists": true,
+				"$gt": 15,
+				"$lte": 99,
+				"$not": {
+					"$type": 10,
+					"$eq": 17
+				}
+			}
+		""".trimIndent()
+	}
 })

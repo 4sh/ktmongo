@@ -219,8 +219,9 @@ class FilterExpression<T>(
 
 		override fun write(writer: BsonWriter) {
 			writer.writeDocument {
-				writer.writeName(target)
-				expression.writeTo(writer)
+				writer.writeDocument(target) {
+					expression.writeTo(writer)
+				}
 			}
 		}
 	}

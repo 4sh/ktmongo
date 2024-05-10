@@ -64,13 +64,11 @@ class PredicateExpression<T>(
 	) : PredicateExpressionNode(codec) {
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				if (value == null)
-					writer.writeNull("\$eq")
-				else {
-					writer.writeName("\$eq")
-					writer.writeObject(value, codec)
-				}
+			if (value == null)
+				writer.writeNull("\$eq")
+			else {
+				writer.writeName("\$eq")
+				writer.writeObject(value, codec)
 			}
 		}
 	}
@@ -156,10 +154,7 @@ class PredicateExpression<T>(
 	) : PredicateExpressionNode(codec) {
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$exists")
-				writer.writeBoolean(exists)
-			}
+			writer.writeBoolean("\$exists", exists)
 		}
 	}
 
@@ -241,9 +236,7 @@ class PredicateExpression<T>(
 	) : PredicateExpressionNode(codec) {
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeInt32("\$type", type.value)
-			}
+			writer.writeInt32("\$type", type.value)
 		}
 	}
 
@@ -298,8 +291,7 @@ class PredicateExpression<T>(
 		}
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$not")
+			writer.writeDocument("\$not") {
 				expression.writeTo(writer)
 			}
 		}
@@ -457,10 +449,8 @@ class PredicateExpression<T>(
 
 		@LowLevelApi
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$gt")
-				writer.writeObject(value, codec)
-			}
+			writer.writeName("\$gt")
+			writer.writeObject(value, codec)
 		}
 	}
 
@@ -494,7 +484,6 @@ class PredicateExpression<T>(
 		if (value != null)
 			gt(value)
 	}
-
 
 	/**
 	 * Selects documents for which this field has a value greater or equal to [value].
@@ -533,10 +522,8 @@ class PredicateExpression<T>(
 
 		@LowLevelApi
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$gte")
-				writer.writeObject(value, codec)
-			}
+			writer.writeName("\$gte")
+			writer.writeObject(value, codec)
 		}
 	}
 
@@ -608,10 +595,8 @@ class PredicateExpression<T>(
 
 		@LowLevelApi
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$lt")
-				writer.writeObject(value, codec)
-			}
+			writer.writeName("\$lt")
+			writer.writeObject(value, codec)
 		}
 	}
 
@@ -645,7 +630,6 @@ class PredicateExpression<T>(
 		if (value != null)
 			lt(value)
 	}
-
 
 	/**
 	 * Selects documents for which this field has a value lesser or equal to [value].
@@ -684,10 +668,8 @@ class PredicateExpression<T>(
 
 		@LowLevelApi
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$lte")
-				writer.writeObject(value, codec)
-			}
+			writer.writeName("\$lte")
+			writer.writeObject(value, codec)
 		}
 	}
 
