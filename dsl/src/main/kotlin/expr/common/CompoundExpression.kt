@@ -4,6 +4,7 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
+import java.util.*
 
 /**
  * A compound node in the BSON AST.
@@ -22,7 +23,11 @@ abstract class CompoundExpression(
 
 	// region Sub-expression binding
 
-	private val children = ArrayList<Expression>()
+	private val _children = ArrayList<Expression>()
+
+	@LowLevelApi
+	val children: List<Expression>
+		get() = Collections.unmodifiableList(_children)
 
 	/**
 	 * Binds an arbitrary [expression] as a sub-expression of the receiver.
@@ -44,8 +49,12 @@ abstract class CompoundExpression(
 	fun accept(expression: Expression) {
 		require(!frozen) { "This expression has already been frozen, it cannot accept the child expression $expression" }
 
-		expression.freeze()
-		children += expression
+		val simplifiedExpression = expression.simplify()
+
+		if (simplifiedExpression != null) {
+			_children += simplifiedExpression
+				.also { it.freeze() }
+		}
 	}
 
 	// endregion
@@ -56,6 +65,7 @@ abstract class CompoundExpression(
 	 *
 	 * @param children The list of expressions that have been [bound][accept] into this
 	 * expression.
+	 * **These children have already been simplified.**
 	 */
 	@LowLevelApi
 	protected open fun simplify(children: List<Expression>): Expression =

@@ -283,6 +283,13 @@ class PredicateExpression<T>(
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
+		override fun simplify(): Expression? {
+			if (expression.children.isEmpty())
+				return null
+
+			return super.simplify()
+		}
+
 		override fun write(writer: BsonWriter) {
 			writer.writeDocument {
 				writer.writeName("\$not")

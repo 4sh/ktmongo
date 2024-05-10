@@ -102,6 +102,15 @@ class PredicateExpressionTest : FunSpec({
 				}
 			""".trimIndent()
 		}
+
+		test("Empty $not is no-op and thus removed") {
+			predicate<String> {
+				not {  }
+			} shouldBeBson """
+				{
+				}
+			""".trimIndent()
+		}
 	}
 
 })

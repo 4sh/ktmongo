@@ -59,7 +59,7 @@ abstract class Expression(
 	 * **Implementations must be pure.**
 	 */
 	@LowLevelApi
-	protected open fun simplify(): Expression = this
+	open fun simplify(): Expression? = this
 
 	/**
 	 * Writes this expression into a [writer].
@@ -68,7 +68,7 @@ abstract class Expression(
 	 */
 	@LowLevelApi
 	fun writeTo(writer: BsonWriter) {
-		this.simplify().write(writer)
+		this.simplify()?.write(writer)
 	}
 
 	/**
