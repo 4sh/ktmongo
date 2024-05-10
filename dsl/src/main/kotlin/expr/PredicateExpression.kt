@@ -109,6 +109,57 @@ class PredicateExpression<T>(
 	}
 
 	// endregion
+	// region $ne
+
+	/**
+	 * Matches documents where the value of a field does not equal the [value].
+	 *
+	 * The result includes documents which do not contain the specified field.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name {
+	 *         ne("foo")
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/ne/)
+	 *
+	 * @see FilterExpression.ne Shorthand.
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun ne(value: T) {
+		accept(InequalityExpressionNode(value, codec))
+	}
+
+	@LowLevelApi
+	private class InequalityExpressionNode<T>(
+		val value: T,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+
+		override fun write(writer: BsonWriter) {
+			if (value == null)
+				writer.writeNull("\$ne")
+			else {
+				writer.writeName("\$ne")
+				writer.writeObject(value, codec)
+			}
+		}
+	}
+
+	// endregion
 	// region $exists
 
 	/**

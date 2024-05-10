@@ -12,6 +12,7 @@
 - [`$in`][fr.qsh.ktmongo.dsl.expr.FilterExpression.isOneOf]
 - [`$lt`][fr.qsh.ktmongo.dsl.expr.FilterExpression.lt]
 - [`$lte`][fr.qsh.ktmongo.dsl.expr.FilterExpression.lte]
+- [`$ne`][fr.qsh.ktmongo.dsl.expr.FilterExpression.ne]
 - [`$not`][fr.qsh.ktmongo.dsl.expr.FilterExpression.not]
 - [`$or`][fr.qsh.ktmongo.dsl.expr.FilterExpression.or]
 - [`$type`][fr.qsh.ktmongo.dsl.expr.FilterExpression.hasType]

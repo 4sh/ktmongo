@@ -16,6 +16,7 @@ class FilterExpressionTest : FunSpec({
 		FilterExpression<T>(testCodec()).apply(block).toString(simplified = true)
 
 	val eq = "\$eq"
+	val ne = "\$ne"
 	val and = "\$and"
 	val or = "\$or"
 	val exists = "\$exists"
@@ -43,6 +44,32 @@ class FilterExpressionTest : FunSpec({
 				{
 					"age": {
 						"$eq": null
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $ne") {
+		test("Integer") {
+			filter {
+				User::age ne 12
+			} shouldBeBson """
+				{
+					"age": {
+						"$ne": 12
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Null") {
+			filter {
+				User::age ne null
+			} shouldBeBson """
+				{
+					"age": {
+						"$ne": null
 					}
 				}
 			""".trimIndent()

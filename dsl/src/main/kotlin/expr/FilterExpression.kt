@@ -320,6 +320,38 @@ class FilterExpression<T>(
 	}
 
 	// endregion
+	// region $ne
+
+	/**
+	 * Matches documents where the value of a field does not equal the [value].
+	 *
+	 * The result includes documents which do not contain the specified field.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name ne "foo"
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/ne/)
+	 *
+	 * @see eq
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.ne(value: V) {
+		this { ne(value) }
+	}
+
+	// endregion
 	// region $exists
 
 	/**
