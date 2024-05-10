@@ -130,7 +130,7 @@ class FilterExpression<T>(
 	@KtMongoDsl
 	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: PredicateExpression<V>.() -> Unit) {
 		writer.buildDocument(this.path().toString()) {
-			PredicateExpression<V>(writer, codec).apply(block)
+			PredicateExpression<V>(codec).apply(block).write(writer, codec)
 		}
 	}
 
@@ -159,7 +159,7 @@ class FilterExpression<T>(
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
 	 */
 	@KtMongoDsl
-	inline infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: PredicateExpression<V>.() -> Unit) {
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: PredicateExpression<V>.() -> Unit) {
 		this { this.not(expression) }
 	}
 

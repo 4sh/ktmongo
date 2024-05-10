@@ -13,16 +13,25 @@ import org.bson.codecs.configuration.CodecRegistry
  * DSL for MongoDB operators that are used as predicates in conditions in a context where the targeted field is already
  * specified.
  */
-@OptIn(LowLevelApi::class)
 @KtMongoDsl
 class PredicateExpression<T>(
 	@property:LowLevelApi
-	@PublishedApi
-	internal val writer: BsonDocumentWriter,
+	val codec: CodecRegistry,
+) : AbstractExpression(codec) {
 
-	@PublishedApi
-	internal val codec: CodecRegistry,
-) {
+	// region Low-level operations
+
+	@LowLevelApi
+	override fun write(writer: BsonDocumentWriter, codec: CodecRegistry, children: List<ExpressionNode>) {
+		for (child in children) {
+			child.write(writer, codec)
+		}
+	}
+
+	@LowLevelApi
+	private sealed class PredicateExpressionNode(codec: CodecRegistry) : AbstractExpressionNode(codec)
+
+	// endregion
 
 	/**
 	 * Matches documents where the value of a field equals the [value].
@@ -48,15 +57,26 @@ class PredicateExpression<T>(
 	 *
 	 * @see FilterExpression.eq Shorthand.
 	 */
+	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	fun eq(value: T) {
-		writer.buildDocument("\$eq") {
-			if (value == null) {
-				writer.writeNull()
-			} else {
-				@Suppress("UNNECESSARY_NOT_NULL_ASSERTION", "UNCHECKED_CAST") // Kotlin doesn't smart-cast here, but should, this is safe
-				(codec.get(value!!::class.java) as Encoder<T>)
-					.encode(writer, value, EncoderContext.builder().build())
+		accept(EqualityExpressionNode(value, codec))
+	}
+
+	@LowLevelApi
+	private class EqualityExpressionNode<T>(
+		val value: T,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument("\$eq") {
+				if (value == null) {
+					writer.writeNull()
+				} else {
+					@Suppress("UNNECESSARY_NOT_NULL_ASSERTION", "UNCHECKED_CAST") // Kotlin doesn't smart-cast here, but should, this is safe
+					(codec.get(value!!::class.java) as Encoder<T>)
+						.encode(writer, value, EncoderContext.builder().build())
+				}
 			}
 		}
 	}
@@ -126,10 +146,21 @@ class PredicateExpression<T>(
 	 * @see doesNotExist Opposite.
 	 * @see isNotNull Identical, but does not match elements where the field is `null`.
 	 */
+	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	fun exists() {
-		writer.buildDocument("\$exists") {
-			writer.writeBoolean(true)
+		accept(ExistsPredicateExpressionNode(true, codec))
+	}
+
+	@LowLevelApi
+	private class ExistsPredicateExpressionNode(
+		val exists: Boolean,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument("\$exists") {
+				writer.writeBoolean(exists)
+			}
 		}
 	}
 
@@ -160,11 +191,10 @@ class PredicateExpression<T>(
 	 * @see exists Opposite.
 	 * @see isNull Only matches elements that are specifically `null`.
 	 */
+	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	fun doesNotExist() {
-		writer.buildDocument("\$exists") {
-			writer.writeBoolean(false)
-		}
+		accept(ExistsPredicateExpressionNode(false, codec))
 	}
 
 	/**
@@ -196,10 +226,21 @@ class PredicateExpression<T>(
 	 * @see isNull Checks if a value has the type [BsonType.NULL].
 	 * @see isUndefined Checks if a value has the type [BsonType.UNDEFINED].
 	 */
+	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	fun hasType(type: BsonType) {
-		writer.buildDocument("\$type") {
-			writer.writeInt32(type.value)
+		accept(TypePredicateExpressionNode(type, codec))
+	}
+
+	@LowLevelApi
+	private class TypePredicateExpressionNode(
+		val type: BsonType,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument("\$type") {
+				writer.writeInt32(this.type.value)
+			}
 		}
 	}
 
@@ -231,10 +272,21 @@ class PredicateExpression<T>(
 	 *
 	 * @see FilterExpression.not Shorthand.
 	 */
+	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun not(expression: PredicateExpression<T>.() -> Unit) {
-		writer.buildDocument("\$not") {
-			PredicateExpression<T>(writer, codec).apply(expression)
+	fun not(expression: PredicateExpression<T>.() -> Unit) {
+		accept(NotPredicateExpressionNode(PredicateExpression<T>(codec).apply(expression), codec))
+	}
+
+	@LowLevelApi
+	private class NotPredicateExpressionNode<T>(
+		val expression: PredicateExpression<T>,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+			writer.buildDocument("\$not") {
+				expression.write(writer, codec)
+			}
 		}
 	}
 
