@@ -4,10 +4,12 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.buildArray
 import fr.qsh.ktmongo.dsl.buildDocument
+import fr.qsh.ktmongo.dsl.expr.ExpressionNode.EmptyExpressionNode
 import fr.qsh.ktmongo.dsl.path.path
 import org.bson.BsonDocumentWriter
 import org.bson.BsonType
 import org.bson.codecs.configuration.CodecRegistry
+import javax.management.Query.and
 import kotlin.internal.OnlyInputTypes
 import kotlin.reflect.KProperty1
 
@@ -25,9 +27,15 @@ class FilterExpression<T>(
 	// region Low-level operations
 
 	@LowLevelApi
-	override fun write(writer: BsonDocumentWriter, codec: CodecRegistry, children: List<ExpressionNode>) {
-		for (child in children) {
-			child.write(writer, codec)
+	override fun simplify(codec: CodecRegistry, children: List<ExpressionNode>): ExpressionNode {
+		return when (children.size) {
+			0 -> EmptyExpressionNode
+			1 -> this
+			else -> FilterExpression<T>(codec).apply {
+				and {
+					acceptAll(children)
+				}
+			}
 		}
 	}
 

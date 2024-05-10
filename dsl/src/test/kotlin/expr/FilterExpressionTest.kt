@@ -177,6 +177,28 @@ class FilterExpressionTest : FunSpec({
 			""".trimIndent()
 		}
 
+		test("An automatic $and is generated when multiple filters are given") {
+			filter { // same example as the previous, but we didn't write the '$and'
+				User::name eq "foo"
+				User::age eq null
+			} shouldBeBson """
+				{
+					"$and": [
+						{
+							"name": {
+								"$eq": "foo"
+							}
+						},
+						{
+							"age": {
+								"$eq": null
+							}
+						}
+					]
+				}
+			""".trimIndent()
+		}
+
 		test("Or") {
 			filter {
 				or {

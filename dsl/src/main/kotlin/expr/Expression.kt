@@ -1,5 +1,6 @@
 package fr.qsh.ktmongo.dsl.expr
 
+import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
@@ -19,6 +20,7 @@ import org.bson.codecs.configuration.CodecRegistry
  * BSON used by the request. We recommend implementing [AbstractExpression], which does this automatically.
  */
 @OptIn(LowLevelApi::class)
+@KtMongoDsl
 interface Expression : ExpressionNode {
 
 	/**
@@ -33,7 +35,15 @@ interface Expression : ExpressionNode {
 	 * [ExpressionNode]. Only implement operators yourself if you are sure of what you are doing!
 	 */
 	@LowLevelApi
+	@KtMongoDsl
 	fun accept(node: ExpressionNode)
+}
+
+@LowLevelApi
+@KtMongoDsl
+fun Expression.acceptAll(nodes: Iterable<ExpressionNode>) {
+	for (node in nodes)
+		accept(node)
 }
 
 /**
@@ -60,6 +70,22 @@ interface ExpressionNode {
 	 */
 	@LowLevelApi
 	fun write(writer: BsonDocumentWriter, codec: CodecRegistry)
+
+	/**
+	 * Executes simplification against the current node.
+	 *
+	 * By default, no simplifications are executed and this object is returned as-is.
+	 */
+	@LowLevelApi
+	fun simplify(codec: CodecRegistry): ExpressionNode = this
+
+	@LowLevelApi
+	fun simplifyAndWrite(writer: BsonDocumentWriter, codec: CodecRegistry) =
+		simplify(codec).write(writer, codec)
+
+	object EmptyExpressionNode : ExpressionNode {
+		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {}
+	}
 }
 
 /**
@@ -78,15 +104,17 @@ abstract class AbstractExpression(
 		children += node
 	}
 
-	/**
-	 * Writes [children] into the [writer], simplifying the expression in any way as needed.
-	 */
 	@LowLevelApi
-	protected abstract fun write(writer: BsonDocumentWriter, codec: CodecRegistry, children: List<ExpressionNode>)
+	protected open fun simplify(codec: CodecRegistry, children: List<ExpressionNode>): ExpressionNode = this
+
+	final override fun simplify(codec: CodecRegistry): ExpressionNode =
+		simplify(codec, children)
 
 	@LowLevelApi
 	override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
-		write(writer, codec, children)
+		for (child in children) {
+			child.write(writer, codec)
+		}
 	}
 }
 
@@ -103,7 +131,7 @@ abstract class AbstractExpressionNode(
 
 		@OptIn(LowLevelApi::class)
 		BsonDocumentWriter(document).use {
-			write(it, codec)
+			simplifyAndWrite(it, codec)
 		}
 
 		return document.toJson()

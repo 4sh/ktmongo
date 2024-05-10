@@ -22,13 +22,6 @@ class PredicateExpression<T>(
 	// region Low-level operations
 
 	@LowLevelApi
-	override fun write(writer: BsonDocumentWriter, codec: CodecRegistry, children: List<ExpressionNode>) {
-		for (child in children) {
-			child.write(writer, codec)
-		}
-	}
-
-	@LowLevelApi
 	private sealed class PredicateExpressionNode(codec: CodecRegistry) : AbstractExpressionNode(codec)
 
 	// endregion

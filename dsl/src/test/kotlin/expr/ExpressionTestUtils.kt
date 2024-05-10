@@ -81,7 +81,7 @@ fun <E : Expression> buildExpression(dsl: (CodecRegistry) -> E, block: E.() -> U
 	val document = BsonDocument()
 
 	val codec = testCodec()
-	dsl(codec).apply(block).write(BsonDocumentWriter(document), codec)
+	dsl(codec).apply(block).simplifyAndWrite(BsonDocumentWriter(document), codec)
 
 	return document.toJson()
 }
