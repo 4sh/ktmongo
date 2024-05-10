@@ -46,7 +46,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
 	 *
-	 * @see PredicateExpression.eq Shorthand.
+	 * @see FilterExpression.eq Shorthand.
 	 */
 	@KtMongoDsl
 	fun eq(value: T) {
@@ -91,7 +91,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
 	 *
-	 * @see PredicateExpression.eqNotNull Shorthand.
+	 * @see FilterExpression.eqNotNull Shorthand.
 	 * @see eq Equality filter.
 	 */
 	@KtMongoDsl
@@ -122,7 +122,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
 	 *
-	 * @see PredicateExpression.exists Shorthand.
+	 * @see FilterExpression.exists Shorthand.
 	 * @see doesNotExist Opposite.
 	 * @see isNotNull Identical, but does not match elements where the field is `null`.
 	 */
@@ -156,7 +156,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/exists/)
 	 *
-	 * @see PredicateExpression.doesNotExist Shorthand.
+	 * @see FilterExpression.doesNotExist Shorthand.
 	 * @see exists Opposite.
 	 * @see isNull Only matches elements that are specifically `null`.
 	 */
@@ -192,7 +192,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/type/)
 	 *
-	 * @see PredicateExpression.hasType Shorthand.
+	 * @see FilterExpression.hasType Shorthand.
 	 * @see isNull Checks if a value has the type [BsonType.NULL].
 	 * @see isUndefined Checks if a value has the type [BsonType.UNDEFINED].
 	 */
@@ -229,7 +229,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
 	 *
-	 * @see PredicateExpression.not Shorthand.
+	 * @see FilterExpression.not Shorthand.
 	 */
 	@KtMongoDsl
 	inline fun not(expression: TargetedPredicateExpression<T>.() -> Unit) {
@@ -258,7 +258,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see PredicateExpression.isNull Shorthand.
+	 * @see FilterExpression.isNull Shorthand.
 	 * @see doesNotExist Checks if the value is not set.
 	 * @see isNotNull Opposite.
 	 */
@@ -286,7 +286,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see PredicateExpression.isNotNull Shorthand.
+	 * @see FilterExpression.isNotNull Shorthand.
 	 * @see isNull Opposite.
 	 */
 	@KtMongoDsl
@@ -313,7 +313,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see PredicateExpression.isUndefined Shorthand.
+	 * @see FilterExpression.isUndefined Shorthand.
 	 * @see isNotUndefined Opposite.
 	 */
 	@KtMongoDsl
@@ -340,7 +340,7 @@ class TargetedPredicateExpression<T>(
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/tutorial/query-for-null-fields/#type-check)
 	 *
-	 * @see PredicateExpression.isNotUndefined Shorthand.
+	 * @see FilterExpression.isNotUndefined Shorthand.
 	 * @see isUndefined Opposite.
 	 */
 	@KtMongoDsl

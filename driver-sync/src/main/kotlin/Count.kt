@@ -1,7 +1,7 @@
 package fr.qsh.ktmongo.sync
 
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.expr.PredicateExpression
+import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 
@@ -27,10 +27,10 @@ fun <T : Any> MongoCollection<T>.countDocuments(): Long {
  * - [Official documentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/)
  */
 @OptIn(LowLevelApi::class)
-fun <T : Any> MongoCollection<T>.countDocuments(predicate: PredicateExpression<T>.() -> Unit): Long {
+fun <T : Any> MongoCollection<T>.countDocuments(predicate: FilterExpression<T>.() -> Unit): Long {
 	val bson = BsonDocument()
 
-	PredicateExpression<T>(BsonDocumentWriter(bson), unsafe.codecRegistry)
+	FilterExpression<T>(BsonDocumentWriter(bson), unsafe.codecRegistry)
 		.and(predicate) // use an 'and' as the default
 
 	return unsafe.countDocuments(filter = bson)

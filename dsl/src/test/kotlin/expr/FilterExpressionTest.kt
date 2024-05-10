@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import org.bson.BsonType
 
 @Suppress("unused")
-class PredicateExpressionTest : FunSpec({
+class FilterExpressionTest : FunSpec({
 
 	class User(
 		val id: String,
@@ -12,8 +12,8 @@ class PredicateExpressionTest : FunSpec({
 		val age: Int?,
 	)
 
-	fun <T> predicate(block: PredicateExpression<T>.() -> Unit): String =
-		buildExpression(::PredicateExpression, block)
+	fun <T> filter(block: FilterExpression<T>.() -> Unit): String =
+		buildExpression(::FilterExpression, block)
 
 	val eq = "\$eq"
 	val and = "\$and"
@@ -24,7 +24,7 @@ class PredicateExpressionTest : FunSpec({
 
 	context("Operator $eq") {
 		test("Integer") {
-			predicate {
+			filter {
 				User::age eq 5
 			} shouldBeBson """
 				{
@@ -36,11 +36,11 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Null") {
-			predicate {
-				User::name eq null
+			filter {
+				User::age eq null
 			} shouldBeBson """
 				{
-					"name": {
+					"age": {
 						"$eq": null
 					}
 				}
@@ -50,7 +50,7 @@ class PredicateExpressionTest : FunSpec({
 
 	context("Operator $exists") {
 		test("Exists") {
-			predicate {
+			filter {
 				User::age.exists()
 			} shouldBeBson """
 				{
@@ -62,7 +62,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Does not exist") {
-			predicate {
+			filter {
 				User::age.doesNotExist()
 			} shouldBeBson """
 				{
@@ -76,7 +76,7 @@ class PredicateExpressionTest : FunSpec({
 
 	context("Operator $type") {
 		test("String") {
-			predicate {
+			filter {
 				User::age hasType BsonType.STRING
 			} shouldBeBson """
 				{
@@ -88,7 +88,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Null") {
-			predicate {
+			filter {
 				User::age hasType BsonType.NULL
 			} shouldBeBson """
 				{
@@ -100,7 +100,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Is null") {
-			predicate {
+			filter {
 				User::name.isNull()
 			} shouldBeBson """
 				{
@@ -112,7 +112,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Is undefined") {
-			predicate {
+			filter {
 				User::name.isUndefined()
 			} shouldBeBson """
 				{
@@ -124,7 +124,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Is not null") {
-			predicate {
+			filter {
 				User::name.isNotNull()
 			} shouldBeBson """
 				{
@@ -138,7 +138,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Is not undefined") {
-			predicate {
+			filter {
 				User::name.isNotUndefined()
 			} shouldBeBson """
 				{
@@ -154,7 +154,7 @@ class PredicateExpressionTest : FunSpec({
 
 	context("Operators $and and $or") {
 		test("And") {
-			predicate {
+			filter {
 				and {
 					User::name eq "foo"
 					User::age eq null
@@ -178,7 +178,7 @@ class PredicateExpressionTest : FunSpec({
 		}
 
 		test("Or") {
-			predicate {
+			filter {
 				or {
 					User::name eq "foo"
 					User::age eq null

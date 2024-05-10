@@ -17,7 +17,7 @@ import kotlin.reflect.KProperty1
  * For example, these operators are available when querying with `find`, or as the filter in `updateOne`.
  */
 @KtMongoDsl
-class PredicateExpression<T>(
+class FilterExpression<T>(
 	@property:LowLevelApi
 	@PublishedApi
 	internal val writer: BsonDocumentWriter,
@@ -54,7 +54,7 @@ class PredicateExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun and(block: PredicateExpression<T>.() -> Unit) {
+	inline fun and(block: FilterExpression<T>.() -> Unit) {
 		writer.buildDocument("\$and") {
 			writer.buildArray {
 				block()
@@ -91,7 +91,7 @@ class PredicateExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun or(block: PredicateExpression<T>.() -> Unit) {
+	inline fun or(block: FilterExpression<T>.() -> Unit) {
 		writer.buildDocument("\$or") {
 			writer.buildArray {
 				block()

@@ -2,7 +2,7 @@ package fr.qsh.ktmongo.sync
 
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.expr.PredicateExpression
+import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 
@@ -21,7 +21,7 @@ fun <T : Any> MongoCollection<T>.find(): FindIterable<T> {
 /**
  * Finds all documents in the collection that satisfy [predicate].
  *
- * If multiple expressions are specified, an [and][PredicateExpression.and] is used by default.
+ * If multiple expressions are specified, an [and][FilterExpression.and] is used by default.
  *
  * ### Example
  *
@@ -42,10 +42,10 @@ fun <T : Any> MongoCollection<T>.find(): FindIterable<T> {
  * - [Official documentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.find/)
  */
 @OptIn(LowLevelApi::class)
-fun <T : Any> MongoCollection<T>.find(predicate: PredicateExpression<T>.() -> Unit): FindIterable<T> {
+fun <T : Any> MongoCollection<T>.find(predicate: FilterExpression<T>.() -> Unit): FindIterable<T> {
 	val bson = BsonDocument()
 
-	PredicateExpression<T>(BsonDocumentWriter(bson), unsafe.codecRegistry)
+	FilterExpression<T>(BsonDocumentWriter(bson), unsafe.codecRegistry)
 		.and(predicate) // use an 'and' as the default
 
 	return unsafe.find(bson.asDocument())
@@ -54,7 +54,7 @@ fun <T : Any> MongoCollection<T>.find(predicate: PredicateExpression<T>.() -> Un
 /**
  * Finds one or zero documents in the collection that satisfy [predicate].
  *
- * If multiple expressions are specified, an [and][PredicateExpression.and] is used by default.
+ * If multiple expressions are specified, an [and][FilterExpression.and] is used by default.
  *
  * ### Example
  *
@@ -75,5 +75,5 @@ fun <T : Any> MongoCollection<T>.find(predicate: PredicateExpression<T>.() -> Un
  * - [Official documentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.find/)
  */
 @OptIn(LowLevelApi::class)
-fun <T : Any> MongoCollection<T>.findOne(predicate: PredicateExpression<T>.() -> Unit): T? =
+fun <T : Any> MongoCollection<T>.findOne(predicate: FilterExpression<T>.() -> Unit): T? =
 	find(predicate).firstOrNull()
