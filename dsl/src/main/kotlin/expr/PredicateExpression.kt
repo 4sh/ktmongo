@@ -2,11 +2,11 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.buildDocument
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
-import org.bson.AbstractBsonWriter
+import fr.qsh.ktmongo.dsl.writeDocument
 import org.bson.BsonType
+import org.bson.BsonWriter
 import org.bson.codecs.Encoder
 import org.bson.codecs.EncoderContext
 import org.bson.codecs.configuration.CodecRegistry
@@ -63,11 +63,12 @@ class PredicateExpression<T>(
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument("\$eq") {
-				if (value == null) {
-					writer.writeNull()
-				} else {
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				if (value == null)
+					writer.writeNull("\$eq")
+				else {
+					writer.writeName("\$eq")
 					@Suppress("UNNECESSARY_NOT_NULL_ASSERTION", "UNCHECKED_CAST") // Kotlin doesn't smart-cast here, but should, this is safe
 					(codec.get(value!!::class.java) as Encoder<T>)
 						.encode(writer, value, EncoderContext.builder().build())
@@ -153,8 +154,9 @@ class PredicateExpression<T>(
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument("\$exists") {
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$exists")
 				writer.writeBoolean(exists)
 			}
 		}
@@ -234,9 +236,9 @@ class PredicateExpression<T>(
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument("\$type") {
-				writer.writeInt32(type.value)
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeInt32("\$type", type.value)
 			}
 		}
 	}
@@ -281,8 +283,9 @@ class PredicateExpression<T>(
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument("\$not") {
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$not")
 				expression.writeTo(writer)
 			}
 		}

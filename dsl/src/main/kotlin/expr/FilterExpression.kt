@@ -2,14 +2,14 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.buildArray
-import fr.qsh.ktmongo.dsl.buildDocument
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.expr.common.empty
 import fr.qsh.ktmongo.dsl.path.path
-import org.bson.AbstractBsonWriter
+import fr.qsh.ktmongo.dsl.writeArray
+import fr.qsh.ktmongo.dsl.writeDocument
 import org.bson.BsonType
+import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
 import javax.management.Query.and
 import kotlin.internal.OnlyInputTypes
@@ -32,11 +32,12 @@ class FilterExpression<T>(
 		when (children.size) {
 			0 -> Expression.empty(codec)
 			1 -> this
-			// else -> {
-			// 	val expression = FilterExpression<T>(codec)
-			// 	expression.and { acceptAll(children) }
-			// 	expression
-			// }
+			// else -> AndFilterExpressionNode(
+			// 	FilterExpression<T>(codec).apply {
+			// 		acceptAll(children)
+			// 	},
+			// 	codec,
+			// )
 			else -> this
 		}
 
@@ -83,9 +84,10 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument("\$and") {
-				writer.buildArray {
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$and")
+				writer.writeArray {
 					expression.writeTo(writer)
 				}
 			}
@@ -131,9 +133,10 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument("\$or") {
-				writer.buildArray {
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$or")
+				writer.writeArray {
 					expression.writeTo(writer)
 				}
 			}
@@ -180,8 +183,9 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun write(writer: AbstractBsonWriter) {
-			writer.buildDocument(target) {
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName(target)
 				expression.writeTo(writer)
 			}
 		}

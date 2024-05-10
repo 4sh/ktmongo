@@ -1,9 +1,9 @@
 package fr.qsh.ktmongo.dsl.expr.common
 
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import org.bson.AbstractBsonWriter
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
+import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
 
 /**
@@ -34,7 +34,7 @@ abstract class Expression(
 	 * **Implementations must be pure.**
 	 */
 	@LowLevelApi
-	protected abstract fun write(writer: AbstractBsonWriter)
+	protected abstract fun write(writer: BsonWriter)
 
 	/**
 	 * Allows the implementation to replace itself by another more appropriate representation.
@@ -53,7 +53,7 @@ abstract class Expression(
 	 * This function is guaranteed to be pure.
 	 */
 	@LowLevelApi
-	fun writeTo(writer: AbstractBsonWriter) {
+	fun writeTo(writer: BsonWriter) {
 		this.simplify().write(writer)
 	}
 
@@ -65,13 +65,14 @@ abstract class Expression(
 	fun toString(simplified: Boolean): String {
 		val document = BsonDocument()
 
+		val writer = BsonDocumentWriter(document)
+			.withLoggedContext()
+
 		@OptIn(LowLevelApi::class)
-		BsonDocumentWriter(document).use {
-			if (simplified)
-				writeTo(it)
-			else
-				write(it)
-		}
+		if (simplified)
+			writeTo(writer)
+		else
+			write(writer)
 
 		return document.toString()
 	}
@@ -80,7 +81,7 @@ abstract class Expression(
 	 * Returns a JSON representation of this node, generated using [writeTo].
 	 */
 	final override fun toString(): String =
-		"NO STRING"
+		toString(simplified = true)
 
 	companion object
 }

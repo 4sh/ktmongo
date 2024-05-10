@@ -2,7 +2,7 @@ package fr.qsh.ktmongo.dsl.expr.common
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import org.bson.AbstractBsonWriter
+import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
 
 /**
@@ -75,7 +75,7 @@ abstract class CompoundExpression(
 	 * expression.
 	 */
 	@LowLevelApi
-	protected open fun write(writer: AbstractBsonWriter, children: List<Expression>) {
+	protected open fun write(writer: BsonWriter, children: List<Expression>) {
 		for (child in children) {
 			require(this !== child) { "Trying to write myself as my own child!" }
 			child.writeTo(writer)
@@ -83,7 +83,7 @@ abstract class CompoundExpression(
 	}
 
 	@LowLevelApi
-	final override fun write(writer: AbstractBsonWriter) {
+	final override fun write(writer: BsonWriter) {
 		write(writer, children)
 	}
 
