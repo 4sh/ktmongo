@@ -4,6 +4,7 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
+import fr.qsh.ktmongo.dsl.expr.common.acceptAll
 import fr.qsh.ktmongo.dsl.expr.common.empty
 import fr.qsh.ktmongo.dsl.path.path
 import fr.qsh.ktmongo.dsl.writeArray
@@ -91,7 +92,25 @@ class FilterExpression<T>(
 			if (expression.children.size == 1)
 				return expression
 
-			return super.simplify()
+			// If there are nested $and operators, we combine them into the current one
+			val nestedChildren = ArrayList<Expression>()
+
+			for (child in expression.children) {
+				if (child is AndFilterExpressionNode<*>) {
+					for (nestedChild in child.expression.children) {
+						nestedChildren += nestedChild
+					}
+				} else {
+					nestedChildren += child
+				}
+			}
+
+			return AndFilterExpressionNode(
+				FilterExpression<T>(codec).apply {
+					acceptAll(nestedChildren)
+				},
+				codec,
+			)
 		}
 
 		override fun write(writer: BsonWriter) {

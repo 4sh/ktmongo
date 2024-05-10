@@ -200,6 +200,38 @@ class FilterExpressionTest : FunSpec({
 			""".trimIndent()
 		}
 
+		test("Combine nested $and") {
+			filter {
+				and {
+					User::name eq "foo"
+					and {
+						User::age eq 12
+						User::id eq "abc"
+					}
+				}
+			} shouldBeBson """
+				{
+					"$and": [
+						{
+							"name": {
+								"$eq": "foo"
+							}
+						},
+						{
+							"age": {
+								"$eq": 12
+							}
+						},
+						{
+							"id": {
+								"$eq": "abc"
+							}
+						}
+					]
+				}
+			""".trimIndent()
+		}
+
 		test("An automatic $and is generated when multiple filters are given") {
 			filter { // same example as the previous, but we didn't write the '$and'
 				User::name eq "foo"
