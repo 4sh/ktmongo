@@ -506,4 +506,60 @@ class FilterExpression<T>(
 		this { isNotUndefined() }
 	}
 
+	/**
+	 * Selects documents for which this field has a value strictly greater than [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gt 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gt/)
+	 *
+	 * @see gtNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gt(value: V) {
+		this { gt(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value strictly greater than [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gtNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gt/)
+	 *
+	 * @see gt
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gtNotNull(value: V?) {
+		this { gtNotNull(value) }
+	}
 }

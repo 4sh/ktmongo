@@ -5,10 +5,9 @@ import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.writeDocument
+import fr.qsh.ktmongo.dsl.writeObject
 import org.bson.BsonType
 import org.bson.BsonWriter
-import org.bson.codecs.Encoder
-import org.bson.codecs.EncoderContext
 import org.bson.codecs.configuration.CodecRegistry
 
 /**
@@ -69,9 +68,7 @@ class PredicateExpression<T>(
 					writer.writeNull("\$eq")
 				else {
 					writer.writeName("\$eq")
-					@Suppress("UNNECESSARY_NOT_NULL_ASSERTION", "UNCHECKED_CAST") // Kotlin doesn't smart-cast here, but should, this is safe
-					(codec.get(value!!::class.java) as Encoder<T>)
-						.encode(writer, value, EncoderContext.builder().build())
+					writer.writeObject(value, codec)
 				}
 			}
 		}
@@ -406,4 +403,79 @@ class PredicateExpression<T>(
 	@KtMongoDsl
 	fun isNotUndefined() =
 		not { isUndefined() }
+
+	/**
+	 * Selects documents for which this field has a value strictly greater than [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { gt(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gt/)
+	 *
+	 * @see FilterExpression.gt
+	 * @see gtNotNull
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun gt(value: T) {
+		accept(GtPredicateExpressionNode(value, codec))
+	}
+
+	@LowLevelApi
+	private class GtPredicateExpressionNode<T>(
+		private val value: T,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+
+		@LowLevelApi
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$gt")
+				writer.writeObject(value, codec)
+			}
+		}
+	}
+
+	/**
+	 * Selects documents for which this field has a value strictly greater than [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { gtNotNull(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gt/)
+	 *
+	 * @see FilterExpression.gtNotNull
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	fun gtNotNull(value: T?) {
+		if (value != null)
+			gt(value)
+	}
 }
