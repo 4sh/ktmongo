@@ -10,3 +10,7 @@ dependencies {
 
 	testImplementation(libs.bundles.kotest)
 }
+
+kotlin {
+	compilerOptions.freeCompilerArgs.add("-Xallow-kotlin-package")
+}
