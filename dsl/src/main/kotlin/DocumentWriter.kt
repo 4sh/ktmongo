@@ -1,6 +1,6 @@
 package fr.qsh.ktmongo.dsl
 
-import org.bson.BsonDocumentWriter
+import org.bson.AbstractBsonWriter
 
 /**
  * Helper to start a document, ensuring it is closed.
@@ -9,7 +9,7 @@ import org.bson.BsonDocumentWriter
  */
 @LowLevelApi
 @PublishedApi
-internal inline fun BsonDocumentWriter.buildDocument(name: String? = null, block: () -> Unit) {
+internal inline fun AbstractBsonWriter.buildDocument(name: String? = null, block: () -> Unit) {
 	try {
 		writeStartDocument()
 		name?.let(::writeName)
@@ -24,7 +24,7 @@ internal inline fun BsonDocumentWriter.buildDocument(name: String? = null, block
  */
 @LowLevelApi
 @PublishedApi
-internal inline fun BsonDocumentWriter.buildArray(block: () -> Unit) {
+internal inline fun AbstractBsonWriter.buildArray(block: () -> Unit) {
 	try {
 		writeStartArray()
 		block()

@@ -4,9 +4,11 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.buildArray
 import fr.qsh.ktmongo.dsl.buildDocument
-import fr.qsh.ktmongo.dsl.expr.ExpressionNode.EmptyExpressionNode
+import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.Expression
+import fr.qsh.ktmongo.dsl.expr.common.empty
 import fr.qsh.ktmongo.dsl.path.path
-import org.bson.BsonDocumentWriter
+import org.bson.AbstractBsonWriter
 import org.bson.BsonType
 import org.bson.codecs.configuration.CodecRegistry
 import javax.management.Query.and
@@ -20,27 +22,26 @@ import kotlin.reflect.KProperty1
  */
 @KtMongoDsl
 class FilterExpression<T>(
-	@property:LowLevelApi
-	val codec: CodecRegistry,
-) : AbstractExpression(codec) {
+	codec: CodecRegistry,
+) : CompoundExpression(codec) {
 
 	// region Low-level operations
 
 	@LowLevelApi
-	override fun simplify(codec: CodecRegistry, children: List<ExpressionNode>): ExpressionNode {
-		return when (children.size) {
-			0 -> EmptyExpressionNode
+	override fun simplify(children: List<Expression>): Expression =
+		when (children.size) {
+			0 -> Expression.empty(codec)
 			1 -> this
-			else -> FilterExpression<T>(codec).apply {
-				and {
-					acceptAll(children)
-				}
-			}
+			// else -> {
+			// 	val expression = FilterExpression<T>(codec)
+			// 	expression.and { acceptAll(children) }
+			// 	expression
+			// }
+			else -> this
 		}
-	}
 
 	@LowLevelApi
-	private sealed class FilterExpressionNode(codec: CodecRegistry) : AbstractExpressionNode(codec)
+	private sealed class FilterExpressionNode(codec: CodecRegistry) : Expression(codec)
 
 	// endregion
 
@@ -82,10 +83,10 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument("\$and") {
 				writer.buildArray {
-					expression.write(writer, codec)
+					expression.writeTo(writer)
 				}
 			}
 		}
@@ -130,10 +131,10 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument("\$or") {
 				writer.buildArray {
-					expression.write(writer, codec)
+					expression.writeTo(writer)
 				}
 			}
 		}
@@ -178,9 +179,10 @@ class FilterExpression<T>(
 		val expression: PredicateExpression<*>,
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument(target) {
-				expression.write(writer, codec)
+				expression.writeTo(writer)
 			}
 		}
 	}

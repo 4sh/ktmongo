@@ -30,9 +30,11 @@ fun <T : Any> MongoCollection<T>.countDocuments(): Long {
 fun <T : Any> MongoCollection<T>.countDocuments(predicate: FilterExpression<T>.() -> Unit): Long {
 	val bson = BsonDocument()
 
-	FilterExpression<T>(unsafe.codecRegistry)
-		.apply(predicate)
-		.simplifyAndWrite(BsonDocumentWriter(bson), unsafe.codecRegistry)
+	BsonDocumentWriter(bson).use { writer ->
+		FilterExpression<T>(unsafe.codecRegistry)
+			.apply(predicate)
+			.writeTo(writer)
+	}
 
 	return unsafe.countDocuments(filter = bson)
 }

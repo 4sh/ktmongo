@@ -1,9 +1,6 @@
 package fr.qsh.ktmongo.dsl.expr
 
-import fr.qsh.ktmongo.dsl.LowLevelApi
 import io.kotest.matchers.shouldBe
-import org.bson.BsonDocument
-import org.bson.BsonDocumentWriter
 import org.bson.codecs.*
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistry
@@ -67,24 +64,6 @@ fun testCodec(): CodecRegistry = CodecRegistries.fromCodecs(
 	SymbolCodec(),
 	UuidCodec(),
 )
-
-fun <T> buildExpression(dsl: (BsonDocumentWriter, CodecRegistry) -> T, block: T.() -> Unit): String {
-	val document = BsonDocument()
-
-	dsl(BsonDocumentWriter(document), testCodec()).apply(block)
-
-	return document.toJson()
-}
-
-@OptIn(LowLevelApi::class)
-fun <E : Expression> buildExpression(dsl: (CodecRegistry) -> E, block: E.() -> Unit): String {
-	val document = BsonDocument()
-
-	val codec = testCodec()
-	dsl(codec).apply(block).simplifyAndWrite(BsonDocumentWriter(document), codec)
-
-	return document.toJson()
-}
 
 infix fun String.shouldBeBson(expected: String) {
 	this shouldBe expected

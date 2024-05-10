@@ -13,7 +13,7 @@ class FilterExpressionTest : FunSpec({
 	)
 
 	fun <T> filter(block: FilterExpression<T>.() -> Unit): String =
-		buildExpression(::FilterExpression, block)
+		FilterExpression<T>(testCodec()).apply(block).toString(simplified = true)
 
 	val eq = "\$eq"
 	val and = "\$and"

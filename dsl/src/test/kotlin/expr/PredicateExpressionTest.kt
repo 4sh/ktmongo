@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.FunSpec
 class PredicateExpressionTest : FunSpec({
 
 	fun <T> predicate(block: PredicateExpression<T>.() -> Unit): String =
-		buildExpression(::PredicateExpression, block)
+		PredicateExpression<T>(testCodec()).apply(block).toString(simplified = true)
 
 	val eq = "\$eq"
 

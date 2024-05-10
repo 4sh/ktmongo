@@ -3,7 +3,9 @@ package fr.qsh.ktmongo.dsl.expr
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.buildDocument
-import org.bson.BsonDocumentWriter
+import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.Expression
+import org.bson.AbstractBsonWriter
 import org.bson.BsonType
 import org.bson.codecs.Encoder
 import org.bson.codecs.EncoderContext
@@ -15,14 +17,13 @@ import org.bson.codecs.configuration.CodecRegistry
  */
 @KtMongoDsl
 class PredicateExpression<T>(
-	@property:LowLevelApi
-	val codec: CodecRegistry,
-) : AbstractExpression(codec) {
+	codec: CodecRegistry,
+) : CompoundExpression(codec) {
 
 	// region Low-level operations
 
 	@LowLevelApi
-	private sealed class PredicateExpressionNode(codec: CodecRegistry) : AbstractExpressionNode(codec)
+	private sealed class PredicateExpressionNode(codec: CodecRegistry) : Expression(codec)
 
 	// endregion
 
@@ -61,7 +62,8 @@ class PredicateExpression<T>(
 		val value: T,
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument("\$eq") {
 				if (value == null) {
 					writer.writeNull()
@@ -150,7 +152,8 @@ class PredicateExpression<T>(
 		val exists: Boolean,
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument("\$exists") {
 				writer.writeBoolean(exists)
 			}
@@ -230,9 +233,10 @@ class PredicateExpression<T>(
 		val type: BsonType,
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument("\$type") {
-				writer.writeInt32(this.type.value)
+				writer.writeInt32(type.value)
 			}
 		}
 	}
@@ -276,9 +280,10 @@ class PredicateExpression<T>(
 		val expression: PredicateExpression<T>,
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
-		override fun write(writer: BsonDocumentWriter, codec: CodecRegistry) {
+
+		override fun write(writer: AbstractBsonWriter) {
 			writer.buildDocument("\$not") {
-				expression.write(writer, codec)
+				expression.writeTo(writer)
 			}
 		}
 	}
