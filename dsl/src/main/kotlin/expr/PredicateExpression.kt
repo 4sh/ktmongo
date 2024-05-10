@@ -571,5 +571,156 @@ class PredicateExpression<T>(
 			gte(value)
 	}
 
+	/**
+	 * Selects documents for which this field has a value strictly lesser than [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { lt(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lt/)
+	 *
+	 * @see FilterExpression.lt
+	 * @see ltNotNull
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun lt(value: T) {
+		accept(LtPredicateExpressionNode(value, codec))
+	}
+
+	@LowLevelApi
+	private class LtPredicateExpressionNode<T>(
+		private val value: T,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+
+		@LowLevelApi
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$lt")
+				writer.writeObject(value, codec)
+			}
+		}
+	}
+
+	/**
+	 * Selects documents for which this field has a value strictly lesser than [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { ltNotNull(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lt/)
+	 *
+	 * @see FilterExpression.ltNotNull
+	 * @see lqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	fun ltNotNull(value: T?) {
+		if (value != null)
+			lt(value)
+	}
+
+
+	/**
+	 * Selects documents for which this field has a value lesser or equal to [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { lte(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lte/)
+	 *
+	 * @see FilterExpression.lte
+	 * @see lteNotNull
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun lte(value: T) {
+		accept(LtePredicateExpressionNode(value, codec))
+	}
+
+	@LowLevelApi
+	private class LtePredicateExpressionNode<T>(
+		private val value: T,
+		codec: CodecRegistry,
+	) : PredicateExpressionNode(codec) {
+
+		@LowLevelApi
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$lte")
+				writer.writeObject(value, codec)
+			}
+		}
+	}
+
+	/**
+	 * Selects documents for which this field has a value lesser or equal to [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age { lteNotNull(18) }
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lte/)
+	 *
+	 * @see FilterExpression.lteNotNull
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	fun lteNotNull(value: T?) {
+		if (value != null)
+			lte(value)
+	}
+
 	// endregion
 }

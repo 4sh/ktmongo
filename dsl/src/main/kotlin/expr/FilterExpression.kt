@@ -639,5 +639,120 @@ class FilterExpression<T>(
 		this { gteNotNull(value) }
 	}
 
+
+	/**
+	 * Selects documents for which this field has a value strictly lesser than [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age lt 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lt/)
+	 *
+	 * @see ltNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.lt(value: V) {
+		this { lt(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value strictly lesser than [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age ltNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lt/)
+	 *
+	 * @see lt
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.ltNotNull(value: V?) {
+		this { ltNotNull(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value lesser or equal to [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age lte 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lte/)
+	 *
+	 * @see lteNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.lte(value: V) {
+		this { lte(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value lesser or equal to [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age lteNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lte/)
+	 *
+	 * @see lte
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.lteNotNull(value: V?) {
+		this { lteNotNull(value) }
+	}
+
 	// endregion
 }
