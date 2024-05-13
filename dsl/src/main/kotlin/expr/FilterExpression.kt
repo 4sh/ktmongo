@@ -2,12 +2,15 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.buildArray
-import fr.qsh.ktmongo.dsl.buildDocument
+import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.path.path
-import org.bson.BsonDocumentWriter
+import fr.qsh.ktmongo.dsl.writeArray
+import fr.qsh.ktmongo.dsl.writeDocument
 import org.bson.BsonType
+import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
+import javax.management.Query.and
 import kotlin.internal.OnlyInputTypes
 import kotlin.reflect.KProperty1
 
@@ -18,13 +21,24 @@ import kotlin.reflect.KProperty1
  */
 @KtMongoDsl
 class FilterExpression<T>(
-	@property:LowLevelApi
-	@PublishedApi
-	internal val writer: BsonDocumentWriter,
+	codec: CodecRegistry,
+) : CompoundExpression(codec) {
 
-	@PublishedApi
-	internal val codec: CodecRegistry,
-) {
+	// region Low-level operations
+
+	@LowLevelApi
+	override fun simplify(children: List<Expression>): Expression? =
+		when (children.size) {
+			0 -> null
+			1 -> this
+			else -> AndFilterExpressionNode<T>(children, codec)
+		}
+
+	@LowLevelApi
+	private sealed class FilterExpressionNode(codec: CodecRegistry) : Expression(codec)
+
+	// endregion
+	// region $and, $or
 
 	/**
 	 * Performs a logical `AND` operation on one or more expressions,
@@ -54,10 +68,47 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun and(block: FilterExpression<T>.() -> Unit) {
-		writer.buildDocument("\$and") {
-			writer.buildArray {
-				block()
+	fun and(block: FilterExpression<T>.() -> Unit) {
+		accept(AndFilterExpressionNode<T>(FilterExpression<T>(codec).apply(block).children, codec))
+	}
+
+	@LowLevelApi
+	private class AndFilterExpressionNode<T>(
+		val declaredChildren: List<Expression>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		override fun simplify(): Expression? {
+			if (declaredChildren.isEmpty())
+				return null
+
+			if (declaredChildren.size == 1)
+				return FilterExpression<T>(codec).apply { accept(declaredChildren.single()) }
+
+			// If there are nested $and operators, we combine them into the current one
+			val nestedChildren = ArrayList<Expression>()
+
+			for (child in declaredChildren) {
+				if (child is AndFilterExpressionNode<*>) {
+					for (nestedChild in child.declaredChildren) {
+						nestedChildren += nestedChild
+					}
+				} else {
+					nestedChildren += child
+				}
+			}
+
+			return AndFilterExpressionNode<T>(nestedChildren, codec)
+		}
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$and")
+				writer.writeArray {
+					for (child in declaredChildren) {
+						child.writeTo(writer)
+					}
+				}
 			}
 		}
 	}
@@ -91,13 +142,40 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline fun or(block: FilterExpression<T>.() -> Unit) {
-		writer.buildDocument("\$or") {
-			writer.buildArray {
-				block()
+	fun or(block: FilterExpression<T>.() -> Unit) {
+		accept(OrFilterExpressionNode<T>(FilterExpression<T>(codec).apply(block).children, codec))
+	}
+
+	@LowLevelApi
+	private class OrFilterExpressionNode<T>(
+		val declaredChildren: List<Expression>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		override fun simplify(): Expression? {
+			if (declaredChildren.isEmpty())
+				return null
+
+			if (declaredChildren.size == 1)
+				return FilterExpression<T>(codec).apply { accept(declaredChildren.single()) }
+
+			return super.simplify()
+		}
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeName("\$or")
+				writer.writeArray {
+					for (child in declaredChildren) {
+						child.writeTo(writer)
+					}
+				}
 			}
 		}
 	}
+
+	// endregion
+	// region Predicate access
 
 	/**
 	 * Targets a single field to execute a [targeted predicate][PredicateExpression].
@@ -128,11 +206,28 @@ class FilterExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	inline operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: PredicateExpression<V>.() -> Unit) {
-		writer.buildDocument(this.path().toString()) {
-			PredicateExpression<V>(writer, codec).apply(block)
+	operator fun <@OnlyInputTypes V> KProperty1<T, V>.invoke(block: PredicateExpression<V>.() -> Unit) {
+		accept(PredicateInFilterExpression(this.path().toString(), PredicateExpression<V>(codec).apply(block), codec))
+	}
+
+	@LowLevelApi
+	private class PredicateInFilterExpression(
+		val target: String,
+		val expression: PredicateExpression<*>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument {
+				writer.writeDocument(target) {
+					expression.writeTo(writer)
+				}
+			}
 		}
 	}
+
+	// endregion
+	// region $not
 
 	/**
 	 * Performs a logical `NOT` operation on the specified [expression] and selects the
@@ -159,9 +254,12 @@ class FilterExpression<T>(
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/not/)
 	 */
 	@KtMongoDsl
-	inline infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: PredicateExpression<V>.() -> Unit) {
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.not(expression: PredicateExpression<V>.() -> Unit) {
 		this { this.not(expression) }
 	}
+
+	// endregion
+	// region $eq
 
 	/**
 	 * Matches documents where the value of a field equals the [value].
@@ -221,6 +319,41 @@ class FilterExpression<T>(
 		this { eqNotNull(value) }
 	}
 
+	// endregion
+	// region $ne
+
+	/**
+	 * Matches documents where the value of a field does not equal the [value].
+	 *
+	 * The result includes documents which do not contain the specified field.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name ne "foo"
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/ne/)
+	 *
+	 * @see eq
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.ne(value: V) {
+		this { ne(value) }
+	}
+
+	// endregion
+	// region $exists
+
 	/**
 	 * Matches documents that contain the specified field, including
 	 * values where the field value is `null`.
@@ -278,6 +411,9 @@ class FilterExpression<T>(
 	fun KProperty1<T, *>.doesNotExist() {
 		this { doesNotExist() }
 	}
+
+	// endregion
+	// region $type
 
 	/**
 	 * Selects documents where the value of the field is an instance of the specified BSON [type].
@@ -419,4 +555,296 @@ class FilterExpression<T>(
 		this { isNotUndefined() }
 	}
 
+	// endregion
+	// region $gt, $gte, $lt, $lte
+
+	/**
+	 * Selects documents for which this field has a value strictly greater than [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gt 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gt/)
+	 *
+	 * @see gtNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gt(value: V) {
+		this { gt(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value strictly greater than [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gtNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gt/)
+	 *
+	 * @see gt
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gtNotNull(value: V?) {
+		this { gtNotNull(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value greater or equal to [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gte 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gte/)
+	 *
+	 * @see gteNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gte(value: V) {
+		this { gte(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value greater or equal to [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age gteNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/gte/)
+	 *
+	 * @see gte
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.gteNotNull(value: V?) {
+		this { gteNotNull(value) }
+	}
+
+
+	/**
+	 * Selects documents for which this field has a value strictly lesser than [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age lt 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lt/)
+	 *
+	 * @see ltNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.lt(value: V) {
+		this { lt(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value strictly lesser than [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age ltNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lt/)
+	 *
+	 * @see lt
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.ltNotNull(value: V?) {
+		this { ltNotNull(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value lesser or equal to [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age lte 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lte/)
+	 *
+	 * @see lteNotNull
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.lte(value: V) {
+		this { lte(value) }
+	}
+
+	/**
+	 * Selects documents for which this field has a value lesser or equal to [value].
+	 *
+	 * If [value] is `null`, the operator is not added (all elements are matched).
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?
+	 * )
+	 *
+	 * collection.find {
+	 *     User::age lteNotNull 10
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/lte/)
+	 *
+	 * @see lte
+	 * @see eqNotNull Learn more about the 'notNull' variants
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.lteNotNull(value: V?) {
+		this { lteNotNull(value) }
+	}
+
+	// endregion
+	// region $in
+
+	/**
+	 * Selects documents for which this field is equal to one of the given [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name.isOneOf(listOf("Alfred", "Arthur"))
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/in/)
+	 *
+	 * @see or
+	 * @see eq
+	 */
+	@KtMongoDsl
+	fun <@OnlyInputTypes V> KProperty1<T, V>.isOneOf(values: List<V>) {
+		this { isOneOf(values) }
+	}
+
+	/**
+	 * Selects documents for which this field is equal to one of the given [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int?,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::name.isOneOf("Alfred", "Arthur")
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/in/)
+	 *
+	 * @see or
+	 * @see eq
+	 */
+	@KtMongoDsl
+	fun <@OnlyInputTypes V> KProperty1<T, V>.isOneOf(vararg values: V) {
+		isOneOf(values.asList())
+	}
+
+	// endregion
 }
