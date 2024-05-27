@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.9.22"
+kotlin = "2.0.0"
 kotlinx-coroutines = "1.8.0"
 dokkatoo = "2.2.0"
 mongodb-driver = "5.0.0"
