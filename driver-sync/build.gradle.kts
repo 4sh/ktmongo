@@ -1,8 +1,6 @@
 plugins {
 	id("conventions.base")
-
-	alias(libs.plugins.kotlin)
-	alias(libs.plugins.dokkatoo)
+	id("conventions.library")
 }
 
 dependencies {

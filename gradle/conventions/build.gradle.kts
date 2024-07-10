@@ -1,8 +1,12 @@
-
 plugins {
 	`kotlin-dsl`
 }
 
 kotlin {
-	jvmToolchain(8)
+	jvmToolchain(11)
+}
+
+dependencies {
+	implementation(libs.gradle.kotlin)
+	implementation(libs.gradle.dokkatoo)
 }
