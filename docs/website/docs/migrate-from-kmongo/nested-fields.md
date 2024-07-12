@@ -1,6 +1,7 @@
-# Migrating from KMongo: referring to nested fields
+# Referring to nested documents
 
 For the rest of this article, let's take the following example, in which the collection we're interested in is `User`:
+
 ```kotlin
 class User(
 	val name: String,
@@ -19,21 +20,24 @@ class Pet(
 )
 ```
 
-Referring to a non-nested field is identical with both libraries:
+Referring to a non-nested field is identical with KMongo and KtMongo:
+
 ```kotlin
 User::name eq "foo"
 ```
 
-Referring to nested fields is identical with both libraries:
+Referring to nested documents is identical with both libraries:
+
 ```kotlin
 User::country / Country::code eq "FR"
 ```
 
 Referring to a list item by index uses the `get` operator:
-```kotlin
-// KMongo
-User::pets.pos(4) / Pet::name eq "Chocolat"
 
-// KtMongo
+```kotlin title="Using KMongo"
+User::pets.pos(4) / Pet::name eq "Chocolat"
+```
+
+```kotlin title="Using KtMongo"
 User::pets[4] / Pet::name eq "Chocolat"
 ```

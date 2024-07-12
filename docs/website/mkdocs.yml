@@ -1,4 +1,4 @@
-site_name: KtMongo
+site_name: KtMongo (experimental)
 site_author: 4SH & contributors
 site_description: >
   Towards the future of MongoDB in Kotlin.
@@ -47,14 +47,14 @@ theme:
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: green
-      accent: cyan
+      accent: teal
       toggle:
         icon: material/brightness-7
         name: "Light theme (click to switch to dark)"
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: green
-      accent: cyan
+      accent: teal
       toggle:
         icon: material/brightness-4
         name: "Dark theme (click to switch to system)"
@@ -83,6 +83,13 @@ use_directory_urls: false
 nav:
   - Home: index.md
 
-  - Getting started: [ ]
+  - Getting started:
+      - guides/overview.md
+      - guides/setup.md
+      - guides/search.md
 
-  - Migrating from KMongo: [ ]
+  - Migrating from KMongo:
+      - migrate-from-kmongo/why.md
+      - migrate-from-kmongo/setup.md
+      - migrate-from-kmongo/search.md
+      - migrate-from-kmongo/nested-fields.md

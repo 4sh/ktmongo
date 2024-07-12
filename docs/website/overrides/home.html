@@ -5,14 +5,13 @@
 	#hero-page {
 		width: 59rem;
 		max-width: 100%;
-		min-height: 75vh;
 		margin-left: auto;
 		margin-right: auto;
 	}
 
 	#hero-title {
 		font-size: 3.7rem;
-		margin-top: 30vh;
+		margin-top: 10vh;
 		margin-bottom: 1rem;
 		font-weight: bolder;
 	}
@@ -36,23 +35,8 @@
 			<div class="mdx-hero__content">
 				<h1 id="hero-title">{{ config.site_name }}</h1>
 
-				<p>{{ config.site_description }}</p>
-
 				<div> <!-- Badges -->
 				</div>
-
-				<a class="md-button md-button--primary" href="#welcome"
-				   title="{{ page.next_page.title | e }}">
-					What is it?
-				</a>
-
-				<a class="md-button" href="{{ config.repo_pages }}/api-docs" title="API reference">
-					Visit reference
-				</a>
-
-				<a class="md-button" href="{{ config.repo_url }}" title="Open repository on GitLab">
-					Visit repository
-				</a>
 			</div>
 		</div>
 	</div>
