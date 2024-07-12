@@ -93,3 +93,42 @@ nav:
       - migrate-from-kmongo/setup.md
       - migrate-from-kmongo/search.md
       - migrate-from-kmongo/nested-fields.md
+
+  - Reference:
+      - DSL:
+          - reference-dsl/index.md
+          - fr.qsh.ktmongo.dsl:
+              - reference-dsl/dsl/fr.qsh.ktmongo.dsl/index.md
+              - KtMongoDsl: reference-dsl/dsl/fr.qsh.ktmongo.dsl/-kt-mongo-dsl/index.md
+              - LowLevelApi: reference-dsl/dsl/fr.qsh.ktmongo.dsl/-low-level-api/index.md
+          - fr.qsh.ktmongo.dsl.expr:
+              - reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/index.md
+              - FilterExpression:
+                  - reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/index.md
+                  - accept: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/accept.md
+                  - acceptAll: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/accept-all.md
+                  - and: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/and.md
+                  - doesNotExist: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/does-not-exist.md
+                  - eq: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/eq.md
+                  - eqNotNull: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/eq-not-null.md
+                  - exists: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/exists.md
+                  - freeze: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/freeze.md
+                  - gt: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/gt.md
+                  - gte: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/gte.md
+                  - gteNotNull: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/gte-not-null.md
+                  - gtNotNull: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/gt-not-null.md
+                  - hasType: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/has-type.md
+                  - invoke: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/invoke.md
+                  - isNotNull: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/is-not-null.md
+                  - isNotUndefined: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/is-not-undefined.md
+                  - isNull: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/is-null.md
+                  - isOneOf: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/is-one-of.md
+                  - isUndefined: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/is-undefined.md
+                  - lt: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/lt.md
+                  - lte: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/lte.md
+                  - lteNotNull: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/lte-not-null.md
+                  - ne: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/ne.md
+                  - not: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/not.md
+                  - or: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/or.md
+                  - simplify: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/simplify.md
+                  - writeTo: reference-dsl/dsl/fr.qsh.ktmongo.dsl.expr/-filter-expression/writeTo.md
