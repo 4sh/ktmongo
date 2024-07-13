@@ -2,25 +2,13 @@
 
 To learn what KtMongo is and why it exists, see the [root README](../README.md).
 
-To learn about specific KtMongo features, functions or operators, see the Reference.
+## The website
 
-## Getting started
+The KtMongo website contains guides to get started with KtMongo, guides to migrate from KMongo to KtMongo, and the generated API reference.
 
-To learn how to use KtMongo in your project and to learn about new MongoDB features.
+Its sources are available in the [website/](website) directory.
 
-- Adding KtMongo to your project
-- [Connecting and configuring a database](guides/connect.md)
-- Saving data
-- [Searching for data](guides/search.md)
-- Referencing nested fields
-
-## How to migrate from KMongo?
-
-List of differences between KMongo and KtMongo to help you migrate your existing projects.
-
-- Using KMongo and KtMongo together
-- [Referencing nested fields](migrate-from-kmongo/nested-fields.md)
-- [The operator DSL](migrate-from-kmongo/dsl.md)
+To build it locally, run the `Open documentation website` run configuration.
 
 ## Design documents
 

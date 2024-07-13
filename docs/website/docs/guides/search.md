@@ -1,11 +1,10 @@
-# Searching the database
+# Find data
 
-In this document, we will see how to search for specific data in the database.
-
-> Pre-requisites:
-> - [Obtain a collection](connect.md)
+!!! note ""
+Before retrieving data, you must [connect to the database and obtain a collection](setup.md).
 
 Let's assume we have the following class:
+
 ```kotlin
 class User(
 	val name: String,
@@ -14,6 +13,7 @@ class User(
 ```
 
 To return all documents in a collection, we can use `find`:
+
 ```kotlin
 collection.find()
 	.toList()
@@ -21,6 +21,7 @@ collection.find()
 ```
 
 To only return specific documents, we can add a filter expression:
+
 ```kotlin
 // Find all users who have a name and who are older than 18
 collection.find {
@@ -31,6 +32,7 @@ collection.find {
 ```
 
 If we know that only one user may exist, we can use `findOne` instead:
+
 ```kotlin
 collection.findOne { User::name eq "Sylvain De La Fontaine" }
 ```
