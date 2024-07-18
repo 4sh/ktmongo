@@ -203,7 +203,7 @@ class UpdateExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	infix fun <T, @OnlyInputTypes V : Number> KProperty1<T, V>.inc(amount: V) {
+	infix fun <@OnlyInputTypes V : Number> KProperty1<T, V>.inc(amount: V) {
 		accept(IncrementExpressionNode(listOf(this.path() to amount), codec))
 	}
 

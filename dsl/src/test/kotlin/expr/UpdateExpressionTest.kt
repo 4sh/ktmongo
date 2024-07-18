@@ -131,7 +131,7 @@ class UpdateExpressionTest : FunSpec({
 
 	context("Operator $inc") {
 		test("Single field") {
-			update<User> {
+			update {
 				User::money inc 18.0
 			} shouldBeBson """
 				{
@@ -143,7 +143,7 @@ class UpdateExpressionTest : FunSpec({
 		}
 
 		test("Nested field") {
-			update<User> {
+			update {
 				User::bestFriend / Friend::money inc -12.9f
 			} shouldBeBson """
 				{
@@ -155,7 +155,7 @@ class UpdateExpressionTest : FunSpec({
 		}
 
 		test("Multiple fields") {
-			update<User> {
+			update {
 				User::money inc 5.2
 				User::bestFriend / Friend::money inc -5.2f
 			} shouldBeBson """
