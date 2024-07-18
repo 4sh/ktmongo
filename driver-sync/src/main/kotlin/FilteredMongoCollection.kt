@@ -1,24 +1,38 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
+import fr.qsh.ktmongo.dsl.expr.UpdateExpression
 
 private class FilteredMongoCollection<Document : Any>(
 	private val upstream: MongoCollection<Document>,
 	private val baseFilter: FilterExpression<Document>.() -> Unit,
 ) : MongoCollection<Document> {
-	override fun find(): FindIterable<Document> = upstream.find {
-		baseFilter()
-	}
+	override fun find(): FindIterable<Document> = upstream.find(baseFilter)
 
-	override fun count(): Long = upstream.count {
-		baseFilter()
-	}
+	override fun count(): Long = upstream.count(baseFilter)
 
 	// countEstimated is a real count when a filter is present, it's slower but at least it won't break the app
-	override fun countEstimated(): Long = upstream.count {
-		baseFilter()
-	}
+	override fun countEstimated(): Long = upstream.count(baseFilter)
+
+	override fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? =
+		upstream.findOneAndUpdate(
+			filter = { baseFilter(); filter() },
+			update = update,
+		)
+
+	override fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		upstream.updateOne(
+			filter = { baseFilter(); filter() },
+			update = update,
+		)
+
+	override fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		upstream.updateMany(
+			filter = { baseFilter(); filter() },
+			update = update,
+		)
 
 	override fun count(predicate: FilterExpression<Document>.() -> Unit): Long =
 		upstream.count {

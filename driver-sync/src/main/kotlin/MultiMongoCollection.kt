@@ -1,8 +1,10 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import com.mongodb.kotlin.client.MongoDatabase
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
+import fr.qsh.ktmongo.dsl.expr.UpdateExpression
 
 private class MultiMongoCollection<Document : Any>(
 	private val generator: () -> MongoCollection<Document>
@@ -22,6 +24,14 @@ private class MultiMongoCollection<Document : Any>(
 	override fun find(predicate: FilterExpression<Document>.() -> Unit): FindIterable<Document> =
 		generator().find(predicate)
 
+	override fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		generator().updateMany(filter, update)
+
+	override fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		generator().updateOne(filter, update)
+
+	override fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? =
+		generator().findOneAndUpdate(filter, update)
 }
 
 /**

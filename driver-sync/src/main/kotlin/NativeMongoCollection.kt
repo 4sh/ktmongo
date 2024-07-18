@@ -1,8 +1,11 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
+import fr.qsh.ktmongo.dsl.expr.UpdateExpression
+import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 import com.mongodb.kotlin.client.MongoCollection as OfficialMongoCollection
@@ -14,22 +17,28 @@ class NativeMongoCollection<Document : Any>(
 	@LowLevelApi
 	fun asOfficialMongoCollection() = unsafe
 
+	@OptIn(LowLevelApi::class)
+	private fun CompoundExpression.toBsonDocument(): BsonDocument {
+		val bson = BsonDocument()
+
+		BsonDocumentWriter(bson).use { writer ->
+			this.writeTo(writer)
+		}
+
+		return bson
+	}
+
 	// region Find
 
 	override fun find(): FindIterable<Document> =
 		unsafe.find()
 
 	override fun find(predicate: FilterExpression<Document>.() -> Unit): FindIterable<Document> {
-		val bson = BsonDocument()
+		val bson = FilterExpression<Document>(unsafe.codecRegistry)
+			.apply(predicate)
+			.toBsonDocument()
 
-		@OptIn(LowLevelApi::class)
-		BsonDocumentWriter(bson).use { writer ->
-			FilterExpression<Document>(unsafe.codecRegistry)
-				.apply(predicate)
-				.writeTo(writer)
-		}
-
-		return unsafe.find(bson.asDocument())
+		return unsafe.find(bson)
 	}
 
 	// endregion
@@ -39,20 +48,63 @@ class NativeMongoCollection<Document : Any>(
 		unsafe.countDocuments()
 
 	override fun count(predicate: FilterExpression<Document>.() -> Unit): Long {
-		val bson = BsonDocument()
-
-		@OptIn(LowLevelApi::class)
-		BsonDocumentWriter(bson).use { writer ->
-			FilterExpression<Document>(unsafe.codecRegistry)
-				.apply(predicate)
-				.writeTo(writer)
-		}
+		val bson = FilterExpression<Document>(unsafe.codecRegistry)
+			.apply(predicate)
+			.toBsonDocument()
 
 		return unsafe.countDocuments(filter = bson)
 	}
 
 	override fun countEstimated(): Long =
 		unsafe.estimatedDocumentCount()
+
+	// endregion
+	// region Update
+
+	override fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult {
+		val filterBson = FilterExpression<Document>(unsafe.codecRegistry)
+			.apply(filter)
+			.toBsonDocument()
+
+		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
+			.apply(update)
+			.toBsonDocument()
+
+		return unsafe.updateOne(
+			filter = filterBson,
+			update = updateBson,
+		)
+	}
+
+	override fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult {
+		val filterBson = FilterExpression<Document>(unsafe.codecRegistry)
+			.apply(filter)
+			.toBsonDocument()
+
+		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
+			.apply(update)
+			.toBsonDocument()
+
+		return unsafe.updateMany(
+			filter = filterBson,
+			update = updateBson,
+		)
+	}
+
+	override fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? {
+		val filterBson = FilterExpression<Document>(unsafe.codecRegistry)
+			.apply(filter)
+			.toBsonDocument()
+
+		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
+			.apply(update)
+			.toBsonDocument()
+
+		return unsafe.findOneAndUpdate(
+			filter = filterBson,
+			update = updateBson,
+		)
+	}
 
 	// endregion
 }

@@ -1,7 +1,9 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
+import fr.qsh.ktmongo.dsl.expr.UpdateExpression
 
 /**
  * Parent interface to all collection types provided by KtMongo.
@@ -132,6 +134,182 @@ sealed interface MongoCollection<Document : Any> {
 	 * @see count Perform the count for real.
 	 */
 	fun countEstimated(): Long
+
+	// endregion
+	// region Update
+
+	/**
+	 * Updates all documents in this collection according to [update].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.updateMany {
+	 *     User::name set "foo"
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
+	 *
+	 * @see updateOne
+	 */
+	fun updateMany(update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		updateMany({}, update)
+
+	/**
+	 * Updates all documents that match [filter] according to [update].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.updateMany(
+	 *     filter = {
+	 *         User::name eq "Patrick"
+	 *     },
+	 *     age = {
+	 *         User::age set 15
+	 *     },
+	 * )
+	 * ```
+	 *
+	 * ### Using filtered collections
+	 *
+	 * The following code is equivalent:
+	 * ```kotlin
+	 * collection.filter {
+	 *     User::name eq "Patrick"
+	 * }.updateMany {
+	 *     User::age set 15
+	 * }
+	 * ```
+	 *
+	 * To learn more, see [filter][MongoCollection.filter].
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
+	 *
+	 * @see updateOne
+	 */
+	fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult
+
+	/**
+	 * Updates a single document according to [update].
+	 *
+	 * If there are multiple documents in this collection, only the first one found is updated.
+	 *
+	 * ### Example
+	 *
+	 * This function is more useful when paired with [filter][MongoCollection.filter]:
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.filter {
+	 *     User::name eq "Patrick"
+	 * }.updateOne {
+	 *     User::age set 15
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
+	 *
+	 * @see updateMany Update more than one document.
+	 * @see findOneAndUpdate Also returns the result of the update.
+	 */
+	fun updateOne(update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		updateOne({}, update)
+
+	/**
+	 * Updates a single document that matches [filter] according to [update].
+	 *
+	 * If multiple documents match [filter], only the first one found is updated.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.updateOne(
+	 *     filter = {
+	 *         User::name eq "Patrick"
+	 *     },
+	 *     age = {
+	 *         User::age set 15
+	 *     },
+	 * )
+	 * ```
+	 *
+	 * ### Using filtered collections
+	 *
+	 * The following code is equivalent:
+	 * ```kotlin
+	 * collection.filter {
+	 *     User::name eq "Patrick"
+	 * }.updateOne {
+	 *     User::age set 15
+	 * }
+	 * ```
+	 *
+	 * To learn more, see [filter][MongoCollection.filter].
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
+	 *
+	 * @see updateMany Update more than one document.
+	 * @see findOneAndUpdate Also returns the result of the update.
+	 */
+	fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult
+
+	/**
+	 * Updates one element that matches [filter] according to [update] and returns it, atomically.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.findOneAndUpdate(
+	 *     filter = {
+	 *         User::name eq "Patrick"
+	 *     },
+	 *     age = {
+	 *         User::age set 15
+	 *     },
+	 * )
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/findAndModify/)
+	 *
+	 * @see updateMany Update more than one document.
+	 * @see updateOne Do not return the value.
+	 */
+	fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document?
 
 	// endregion
 
