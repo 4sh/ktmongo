@@ -1,5 +1,9 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.model.CountOptions
+import com.mongodb.client.model.EstimatedDocumentCountOptions
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.LowLevelApi
@@ -44,24 +48,31 @@ class NativeMongoCollection<Document : Any>(
 	// endregion
 	// region Count
 
-	override fun count(): Long =
-		unsafe.countDocuments()
+	override fun count(options: CountOptions): Long =
+		unsafe.countDocuments(options = options)
 
-	override fun count(predicate: FilterExpression<Document>.() -> Unit): Long {
+	override fun count(
+		options: CountOptions,
+		predicate: FilterExpression<Document>.() -> Unit,
+	): Long {
 		val bson = FilterExpression<Document>(unsafe.codecRegistry)
 			.apply(predicate)
 			.toBsonDocument()
 
-		return unsafe.countDocuments(filter = bson)
+		return unsafe.countDocuments(bson, options)
 	}
 
-	override fun countEstimated(): Long =
-		unsafe.estimatedDocumentCount()
+	override fun countEstimated(options: EstimatedDocumentCountOptions): Long =
+		unsafe.estimatedDocumentCount(options)
 
 	// endregion
 	// region Update
 
-	override fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult {
+	override fun updateOne(
+		options: UpdateOptions,
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult {
 		val filterBson = FilterExpression<Document>(unsafe.codecRegistry)
 			.apply(filter)
 			.toBsonDocument()
@@ -73,10 +84,15 @@ class NativeMongoCollection<Document : Any>(
 		return unsafe.updateOne(
 			filter = filterBson,
 			update = updateBson,
+			options = options,
 		)
 	}
 
-	override fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult {
+	override fun updateMany(
+		options: UpdateOptions,
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult {
 		val filterBson = FilterExpression<Document>(unsafe.codecRegistry)
 			.apply(filter)
 			.toBsonDocument()
@@ -88,10 +104,15 @@ class NativeMongoCollection<Document : Any>(
 		return unsafe.updateMany(
 			filter = filterBson,
 			update = updateBson,
+			options = options,
 		)
 	}
 
-	override fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? {
+	override fun findOneAndUpdate(
+		options: FindOneAndUpdateOptions,
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): Document? {
 		val filterBson = FilterExpression<Document>(unsafe.codecRegistry)
 			.apply(filter)
 			.toBsonDocument()
@@ -103,6 +124,7 @@ class NativeMongoCollection<Document : Any>(
 		return unsafe.findOneAndUpdate(
 			filter = filterBson,
 			update = updateBson,
+			options = options,
 		)
 	}
 

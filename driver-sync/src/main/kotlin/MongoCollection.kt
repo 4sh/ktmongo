@@ -1,5 +1,9 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.model.CountOptions
+import com.mongodb.client.model.EstimatedDocumentCountOptions
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
@@ -89,7 +93,9 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * @see countEstimated Faster alternative when the result doesn't need to be exact.
 	 */
-	fun count(): Long
+	fun count(
+		options: CountOptions = CountOptions(),
+	): Long
 
 	/**
 	 * Counts how many documents match [predicate] in the collection.
@@ -112,7 +118,10 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/)
 	 */
-	fun count(predicate: FilterExpression<Document>.() -> Unit): Long
+	fun count(
+		options: CountOptions = CountOptions(),
+		predicate: FilterExpression<Document>.() -> Unit,
+	): Long
 
 	/**
 	 * Counts all documents in the collection.
@@ -133,7 +142,9 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * @see count Perform the count for real.
 	 */
-	fun countEstimated(): Long
+	fun countEstimated(
+		options: EstimatedDocumentCountOptions = EstimatedDocumentCountOptions(),
+	): Long
 
 	// endregion
 	// region Update
@@ -160,8 +171,11 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * @see updateOne
 	 */
-	fun updateMany(update: UpdateExpression<Document>.() -> Unit): UpdateResult =
-		updateMany({}, update)
+	fun updateMany(
+		options: UpdateOptions = UpdateOptions(),
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult =
+		updateMany(options, {}, update)
 
 	/**
 	 * Updates all documents that match [filter] according to [update].
@@ -203,7 +217,11 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * @see updateOne
 	 */
-	fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult
+	fun updateMany(
+		options: UpdateOptions = UpdateOptions(),
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult
 
 	/**
 	 * Updates a single document according to [update].
@@ -233,8 +251,11 @@ sealed interface MongoCollection<Document : Any> {
 	 * @see updateMany Update more than one document.
 	 * @see findOneAndUpdate Also returns the result of the update.
 	 */
-	fun updateOne(update: UpdateExpression<Document>.() -> Unit): UpdateResult =
-		updateOne({}, update)
+	fun updateOne(
+		options: UpdateOptions = UpdateOptions(),
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult =
+		updateOne(filter = {}, update = update)
 
 	/**
 	 * Updates a single document that matches [filter] according to [update].
@@ -279,7 +300,11 @@ sealed interface MongoCollection<Document : Any> {
 	 * @see updateMany Update more than one document.
 	 * @see findOneAndUpdate Also returns the result of the update.
 	 */
-	fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult
+	fun updateOne(
+		options: UpdateOptions = UpdateOptions(),
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult
 
 	/**
 	 * Updates one element that matches [filter] according to [update] and returns it, atomically.
@@ -309,7 +334,11 @@ sealed interface MongoCollection<Document : Any> {
 	 * @see updateMany Update more than one document.
 	 * @see updateOne Do not return the value.
 	 */
-	fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document?
+	fun findOneAndUpdate(
+		options: FindOneAndUpdateOptions = FindOneAndUpdateOptions(),
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): Document?
 
 	// endregion
 

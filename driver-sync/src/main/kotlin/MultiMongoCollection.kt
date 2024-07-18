@@ -1,5 +1,9 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.model.CountOptions
+import com.mongodb.client.model.EstimatedDocumentCountOptions
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import com.mongodb.kotlin.client.MongoDatabase
@@ -12,26 +16,26 @@ private class MultiMongoCollection<Document : Any>(
 	override fun find(): FindIterable<Document> =
 		generator().find()
 
-	override fun count(): Long =
-		generator().count()
+	override fun count(options: CountOptions): Long =
+		generator().count(options)
 
-	override fun countEstimated(): Long =
-		generator().countEstimated()
+	override fun countEstimated(options: EstimatedDocumentCountOptions): Long =
+		generator().countEstimated(options)
 
-	override fun count(predicate: FilterExpression<Document>.() -> Unit): Long =
-		generator().count(predicate)
+	override fun count(options: CountOptions, predicate: FilterExpression<Document>.() -> Unit): Long =
+		generator().count(options, predicate)
 
 	override fun find(predicate: FilterExpression<Document>.() -> Unit): FindIterable<Document> =
 		generator().find(predicate)
 
-	override fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
-		generator().updateMany(filter, update)
+	override fun updateMany(options: UpdateOptions, filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		generator().updateMany(options, filter, update)
 
-	override fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
-		generator().updateOne(filter, update)
+	override fun updateOne(options: UpdateOptions, filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+		generator().updateOne(options, filter, update)
 
-	override fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? =
-		generator().findOneAndUpdate(filter, update)
+	override fun findOneAndUpdate(options: FindOneAndUpdateOptions, filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? =
+		generator().findOneAndUpdate(options, filter, update)
 }
 
 /**

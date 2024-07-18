@@ -1,9 +1,14 @@
 package fr.qsh.ktmongo.sync
 
+import com.mongodb.client.model.CountOptions
+import com.mongodb.client.model.EstimatedDocumentCountOptions
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import fr.qsh.ktmongo.dsl.expr.UpdateExpression
+import java.util.concurrent.TimeUnit
 
 private class FilteredMongoCollection<Document : Any>(
 	private val upstream: MongoCollection<Document>,
@@ -11,31 +16,52 @@ private class FilteredMongoCollection<Document : Any>(
 ) : MongoCollection<Document> {
 	override fun find(): FindIterable<Document> = upstream.find(baseFilter)
 
-	override fun count(): Long = upstream.count(baseFilter)
+	override fun count(options: CountOptions): Long = upstream.count(options, baseFilter)
 
 	// countEstimated is a real count when a filter is present, it's slower but at least it won't break the app
-	override fun countEstimated(): Long = upstream.count(baseFilter)
+	override fun countEstimated(options: EstimatedDocumentCountOptions): Long = upstream.count(
+		CountOptions().maxTime(options.getMaxTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS).comment(options.comment),
+		baseFilter,
+	)
 
-	override fun findOneAndUpdate(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): Document? =
+	override fun findOneAndUpdate(
+		options: FindOneAndUpdateOptions,
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit
+	): Document? =
 		upstream.findOneAndUpdate(
+			options,
 			filter = { baseFilter(); filter() },
 			update = update,
 		)
 
-	override fun updateOne(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+	override fun updateOne(
+		options: UpdateOptions,
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult =
 		upstream.updateOne(
+			options,
 			filter = { baseFilter(); filter() },
 			update = update,
 		)
 
-	override fun updateMany(filter: FilterExpression<Document>.() -> Unit, update: UpdateExpression<Document>.() -> Unit): UpdateResult =
+	override fun updateMany(
+		options: UpdateOptions,
+		filter: FilterExpression<Document>.() -> Unit,
+		update: UpdateExpression<Document>.() -> Unit,
+	): UpdateResult =
 		upstream.updateMany(
+			options,
 			filter = { baseFilter(); filter() },
 			update = update,
 		)
 
-	override fun count(predicate: FilterExpression<Document>.() -> Unit): Long =
-		upstream.count {
+	override fun count(
+		options: CountOptions,
+		predicate: FilterExpression<Document>.() -> Unit,
+	): Long =
+		upstream.count(options) {
 			baseFilter()
 			predicate()
 		}
