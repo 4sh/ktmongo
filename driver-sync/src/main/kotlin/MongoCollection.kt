@@ -150,34 +150,6 @@ sealed interface MongoCollection<Document : Any> {
 	// region Update
 
 	/**
-	 * Updates all documents in this collection according to [update].
-	 *
-	 * ### Example
-	 *
-	 * ```kotlin
-	 * class User(
-	 *     val name: String,
-	 *     val age: Int,
-	 * )
-	 *
-	 * collection.updateMany {
-	 *     User::name set "foo"
-	 * }
-	 * ```
-	 *
-	 * ### External resources
-	 *
-	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
-	 *
-	 * @see updateOne
-	 */
-	fun updateMany(
-		options: UpdateOptions = UpdateOptions(),
-		update: UpdateExpression<Document>.() -> Unit,
-	): UpdateResult =
-		updateMany(options, {}, update)
-
-	/**
 	 * Updates all documents that match [filter] according to [update].
 	 *
 	 * ### Example
@@ -215,47 +187,15 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
 	 *
+	 * @param filter Optional filter to select which documents are updated.
+	 * If no filter is specified, all documents are updated.
 	 * @see updateOne
 	 */
 	fun updateMany(
 		options: UpdateOptions = UpdateOptions(),
-		filter: FilterExpression<Document>.() -> Unit,
+		filter: FilterExpression<Document>.() -> Unit = {},
 		update: UpdateExpression<Document>.() -> Unit,
 	): UpdateResult
-
-	/**
-	 * Updates a single document according to [update].
-	 *
-	 * If there are multiple documents in this collection, only the first one found is updated.
-	 *
-	 * ### Example
-	 *
-	 * This function is more useful when paired with [filter][MongoCollection.filter]:
-	 * ```kotlin
-	 * class User(
-	 *     val name: String,
-	 *     val age: Int,
-	 * )
-	 *
-	 * collection.filter {
-	 *     User::name eq "Patrick"
-	 * }.updateOne {
-	 *     User::age set 15
-	 * }
-	 * ```
-	 *
-	 * ### External resources
-	 *
-	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
-	 *
-	 * @see updateMany Update more than one document.
-	 * @see findOneAndUpdate Also returns the result of the update.
-	 */
-	fun updateOne(
-		options: UpdateOptions = UpdateOptions(),
-		update: UpdateExpression<Document>.() -> Unit,
-	): UpdateResult =
-		updateOne(filter = {}, update = update)
 
 	/**
 	 * Updates a single document that matches [filter] according to [update].
@@ -297,12 +237,14 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/update/)
 	 *
+	 * @param filter Optional filter to select which document is updated.
+	 * If no filter is specified, the first document found is updated.
 	 * @see updateMany Update more than one document.
 	 * @see findOneAndUpdate Also returns the result of the update.
 	 */
 	fun updateOne(
 		options: UpdateOptions = UpdateOptions(),
-		filter: FilterExpression<Document>.() -> Unit,
+		filter: FilterExpression<Document>.() -> Unit = {},
 		update: UpdateExpression<Document>.() -> Unit,
 	): UpdateResult
 
@@ -331,12 +273,14 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/command/findAndModify/)
 	 *
+	 * @param filter Optional filter to select which document is updated.
+	 * If no filter is specified, the first document found is updated.
 	 * @see updateMany Update more than one document.
 	 * @see updateOne Do not return the value.
 	 */
 	fun findOneAndUpdate(
 		options: FindOneAndUpdateOptions = FindOneAndUpdateOptions(),
-		filter: FilterExpression<Document>.() -> Unit,
+		filter: FilterExpression<Document>.() -> Unit = {},
 		update: UpdateExpression<Document>.() -> Unit,
 	): Document?
 
