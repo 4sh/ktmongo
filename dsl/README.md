@@ -16,3 +16,7 @@
 - [`$not`][fr.qsh.ktmongo.dsl.expr.FilterExpression.not]
 - [`$or`][fr.qsh.ktmongo.dsl.expr.FilterExpression.or]
 - [`$type`][fr.qsh.ktmongo.dsl.expr.FilterExpression.hasType]
+
+### Update
+
+- [`$set`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.set]
