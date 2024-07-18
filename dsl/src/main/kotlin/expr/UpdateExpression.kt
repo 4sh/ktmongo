@@ -76,7 +76,9 @@ class UpdateExpression<T>(
 	 *     val age: Int,
 	 * )
 	 *
-	 * collection.updateMany {
+	 * collection.filter {
+	 *     User::name eq "foo"
+	 * }.updateMany {
 	 *     User::age set 18
 	 * }
 	 * ```
@@ -120,7 +122,7 @@ class UpdateExpression<T>(
 	 * then this operator assigns the specified [value] to the field.
 	 * If the update operation does not result in an insert, this operator does nothing.
 	 *
-	 * If used in an update operation that isn't an upset, no document can be inserted,
+	 * If used in an update operation that isn't an upsert, no document can be inserted,
 	 * and thus this operator never does anything.
 	 *
 	 * ### Example
@@ -131,7 +133,9 @@ class UpdateExpression<T>(
 	 *     val age: Int,
 	 * )
 	 *
-	 * collection.upsertOne {
+	 * collection.filter {
+	 *     User::name eq "foo"
+	 * }.upsertOne {
 	 *     User::age setOnInsert 18
 	 * }
 	 * ```
@@ -167,6 +171,61 @@ class UpdateExpression<T>(
 	}
 
 	// endregion
+	// region $inc
+
+	/**
+	 * Increments a field by the specified [amount].
+	 *
+	 * [amount] may be negative, in which case the field is decremented.
+	 *
+	 * If the field doesn't exist (either the document doesn't have it, or the operation is an upsert and a new document is created),
+	 * the field is created with an initial value of [amount].
+	 *
+	 * Use of this operator with a field with a `null` value will generate an error.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * // It's the new year!
+	 * collection.updateMany {
+	 *     User::age inc 1
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/update/inc/)
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	infix fun <T, @OnlyInputTypes V : Number> KProperty1<T, V>.inc(amount: V) {
+		accept(IncrementExpressionNode(listOf(this.path() to amount), codec))
+	}
+
+	@LowLevelApi
+	private class IncrementExpressionNode(
+		val mappings: List<Pair<Path, Number>>,
+		codec: CodecRegistry,
+	) : UpdateExpressionNode(codec) {
+		override fun simplify(): Expression? =
+			this.takeUnless { mappings.isEmpty() }
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument("\$inc") {
+				for ((field, value) in mappings) {
+					writer.writeName(field.toString())
+					writer.writeObject(value, codec)
+				}
+			}
+		}
+	}
+
+	// endregion
 
 	companion object {
 		@OptIn(LowLevelApi::class)
@@ -176,7 +235,10 @@ class UpdateExpression<T>(
 			},
 			OperatorCombinator(SetOnInsertExpressionNode::class) { sources, codec ->
 				SetOnInsertExpressionNode(sources.flatMap { it.mappings }, codec)
-			}
+			},
+			OperatorCombinator(IncrementExpressionNode::class) { sources, codec ->
+				IncrementExpressionNode(sources.flatMap { it.mappings }, codec)
+			},
 		)
 	}
 }

@@ -14,12 +14,14 @@ class UpdateExpressionTest : FunSpec({
 	class Friend(
 		val id: String,
 		val name: String,
+		val money: Float,
 	)
 
 	class User(
 		val id: String,
 		val name: String,
 		val age: Int?,
+		val money: Double,
 		val bestFriend: Friend,
 		val friends: List<Friend>,
 	)
@@ -41,6 +43,7 @@ class UpdateExpressionTest : FunSpec({
 
 	val set = "\$set"
 	val setOnInsert = "\$setOnInsert"
+	val inc = "\$inc"
 
 	test("Empty update") {
 		update<User> { } shouldBeBson """{}"""
@@ -120,6 +123,46 @@ class UpdateExpressionTest : FunSpec({
 					"$setOnInsert": {
 						"age": 18,
 						"name": "foo"
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $inc") {
+		test("Single field") {
+			update<User> {
+				User::money inc 18.0
+			} shouldBeBson """
+				{
+					"$inc": {
+						"money": 18.0
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Nested field") {
+			update<User> {
+				User::bestFriend / Friend::money inc -12.9f
+			} shouldBeBson """
+				{
+					"$inc": {
+						"bestFriend.money": -12.899999618530273
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Multiple fields") {
+			update<User> {
+				User::money inc 5.2
+				User::bestFriend / Friend::money inc -5.2f
+			} shouldBeBson """
+				{
+					"$inc": {
+						"money": 5.2,
+						"bestFriend.money": -5.199999809265137
 					}
 				}
 			""".trimIndent()

@@ -28,5 +28,6 @@ fun main() {
 		Jedi::name eq "foo"
 	}.upsertOne {
 		Jedi::age set 19
+		Jedi::level inc 1
 	}
 }
