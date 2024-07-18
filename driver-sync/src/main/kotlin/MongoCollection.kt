@@ -122,8 +122,8 @@ sealed interface MongoCollection<Document : Any> {
 	 * - there are orphaned documents in a shared cluster,
 	 * - an unclean shutdown happened.
 	 *
-	 * Views do not possess the required metadata. When this function is called on a view,
-	 * a regular [count] is executed instead.
+	 * Views do not possess the required metadata.
+	 * When this function is called on a view (either a MongoDB view or a [filter] logical view), a regular [count] is executed instead.
 	 *
 	 * ### External resources
 	 *
