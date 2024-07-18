@@ -40,6 +40,7 @@ class UpdateExpressionTest : FunSpec({
 	}
 
 	val set = "\$set"
+	val setOnInsert = "\$setOnInsert"
 
 	test("Empty update") {
 		update<User> { } shouldBeBson """{}"""
@@ -85,4 +86,43 @@ class UpdateExpressionTest : FunSpec({
 		}
 	}
 
+	context("Operator $setOnInsert") {
+		test("Single field") {
+			update {
+				User::age setOnInsert 18
+			} shouldBeBson """
+				{
+					"$setOnInsert": {
+						"age": 18
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Nested field") {
+			update {
+				User::bestFriend / Friend::name setOnInsert "foo"
+			} shouldBeBson """
+				{
+					"$setOnInsert": {
+						"bestFriend.name": "foo"
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Multiple fields") {
+			update {
+				User::age setOnInsert 18
+				User::name setOnInsert "foo"
+			} shouldBeBson """
+				{
+					"$setOnInsert": {
+						"age": 18,
+						"name": "foo"
+					}
+				}
+			""".trimIndent()
+		}
+	}
 })

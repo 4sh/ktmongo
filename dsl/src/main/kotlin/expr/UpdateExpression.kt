@@ -12,6 +12,7 @@ import fr.qsh.ktmongo.dsl.writeObject
 import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
 import kotlin.internal.OnlyInputTypes
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 /**
@@ -26,24 +27,29 @@ class UpdateExpression<T>(
 
 	// region Low-level operations
 
+	private class OperatorCombinator<T : Expression>(
+		val type: KClass<T>,
+		val combinator: (List<T>, CodecRegistry) -> T
+	) {
+		@Suppress("UNCHECKED_CAST") // This is a private class, it should not be used incorrectly
+		operator fun invoke(sources: List<Expression>, codec: CodecRegistry) =
+			combinator(sources as List<T>, codec)
+	}
+
 	@LowLevelApi
 	override fun simplify(children: List<Expression>): Expression? {
 		if (children.isEmpty())
 			return null
 
-		var simplifiedChildren = children
+		val simplifiedChildren = combinators.fold(children) { newChildren, combinator ->
+			val matching = newChildren.filterIsInstance(combinator.type.java)
 
-		run {
-			// Combine all $set operators together
-			val sets = simplifiedChildren.filterIsInstance<SetExpressionNode>()
-			val combinedSet =
-				if (sets.size > 1)
-					SetExpressionNode(sets.flatMap { it.mappings }, codec)
-				else null
-			if (combinedSet != null) {
-				val childrenWithoutSets = simplifiedChildren - sets.toSet()
-				simplifiedChildren = childrenWithoutSets + combinedSet
-			}
+			if (matching.size <= 1)
+				// At least two elements are required to combine them into a single one!
+				return@fold newChildren
+
+			val childrenWithoutMatching = newChildren - matching.toSet()
+			childrenWithoutMatching + combinator(matching, codec)
 		}
 
 		if (simplifiedChildren != children)
@@ -78,6 +84,8 @@ class UpdateExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/update/set/)
+	 *
+	 * @see setOnInsert Only set if a new document is created.
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
@@ -105,5 +113,71 @@ class UpdateExpression<T>(
 	}
 
 	// endregion
+	// region $setOnInsert
 
+	/**
+	 * If an upsert operation results in an insert of a document,
+	 * then this operator assigns the specified [value] to the field.
+	 * If the update operation does not result in an insert, this operator does nothing.
+	 *
+	 * If used in an update operation that isn't an upset, no document can be inserted,
+	 * and thus this operator never does anything.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String?,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.update {
+	 *     User::age setOnInsert 18
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/update/setOnInsert/)
+	 *
+	 * @see set Always set the value.
+	 */
+	// TODO: make the above example an upsert
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.setOnInsert(value: V) {
+		accept(SetOnInsertExpressionNode(listOf(this.path() to value), codec))
+	}
+
+	@LowLevelApi
+	private class SetOnInsertExpressionNode(
+		val mappings: List<Pair<Path, *>>,
+		codec: CodecRegistry,
+	) : UpdateExpressionNode(codec) {
+		override fun simplify(): Expression? =
+			this.takeUnless { mappings.isEmpty() }
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument("\$setOnInsert") {
+				for ((field, value) in mappings) {
+					writer.writeName(field.toString())
+					writer.writeObject(value, codec)
+				}
+			}
+		}
+	}
+
+	// endregion
+
+	companion object {
+		@OptIn(LowLevelApi::class)
+		private val combinators = listOf(
+			OperatorCombinator(SetExpressionNode::class) { sources, codec ->
+				SetExpressionNode(sources.flatMap { it.mappings }, codec)
+			},
+			OperatorCombinator(SetOnInsertExpressionNode::class) { sources, codec ->
+				SetOnInsertExpressionNode(sources.flatMap { it.mappings }, codec)
+			}
+		)
+	}
 }

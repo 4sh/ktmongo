@@ -20,3 +20,4 @@
 ### Update
 
 - [`$set`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.set]
+- [`$setOnInsert`](fr.qsh.ktmongo.dsl.expr.UpdateExpression.setOnInsert)
