@@ -76,7 +76,7 @@ class UpdateExpression<T>(
 	 *     val age: Int,
 	 * )
 	 *
-	 * collection.update {
+	 * collection.updateMany {
 	 *     User::age set 18
 	 * }
 	 * ```
@@ -131,7 +131,7 @@ class UpdateExpression<T>(
 	 *     val age: Int,
 	 * )
 	 *
-	 * collection.update {
+	 * collection.upsertOne {
 	 *     User::age setOnInsert 18
 	 * }
 	 * ```
@@ -142,7 +142,6 @@ class UpdateExpression<T>(
 	 *
 	 * @see set Always set the value.
 	 */
-	// TODO: make the above example an upsert
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.setOnInsert(value: V) {

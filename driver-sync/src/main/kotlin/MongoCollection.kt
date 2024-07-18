@@ -249,6 +249,60 @@ sealed interface MongoCollection<Document : Any> {
 	): UpdateResult
 
 	/**
+	 * Updates a single document that matches [filter] according to [update].
+	 *
+	 * If multiple documents match [filter], only the first one is updated.
+	 *
+	 * If no documents match [filter], a new one is created.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * collection.upsertOne(
+	 *     filter = {
+	 *         User::name eq "Patrick"
+	 *     },
+	 *     age = {
+	 *         User::age set 15
+	 *     },
+	 * )
+	 * ```
+	 *
+	 * If a document exists that has the `name` of "Patrick", its age is set to 15.
+	 * If none exists, a document with `name` "Patrick" and `age` 15 is created.
+	 *
+	 * ### Using filtered collections
+	 *
+	 * The following code is equivalent:
+	 * ```kotlin
+	 * collection.filter {
+	 *     User::name eq "Patrick"
+	 * }.upsertOne {
+	 *     User::age set 15
+	 * }
+	 * ```
+	 *
+	 * To learn more, see [filter][MongoCollection.filter].
+	 *
+	 * ### External resources
+	 *
+	 * - [The update operation]
+	 * - [The behavior of upsert functions](https://www.mongodb.com/docs/manual/reference/method/db.collection.update/#insert-a-new-document-if-no-match-exists--upsert-)
+	 *
+	 * @see updateOne
+	 */
+	fun upsertOne(
+		options: UpdateOptions = UpdateOptions(),
+		filter: FilterExpression<Document>.() -> Unit = {},
+		update: UpdateExpression<Document>.() -> Unit,
+	) = updateOne(options.upsert(true), filter, update)
+
+	/**
 	 * Updates one element that matches [filter] according to [update] and returns it, atomically.
 	 *
 	 * ### Example

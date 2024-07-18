@@ -1,6 +1,5 @@
 package fr.qsh.ktmongo.demo
 
-import com.mongodb.client.model.UpdateOptions
 import com.mongodb.kotlin.client.MongoClient
 import fr.qsh.ktmongo.sync.asKtMongo
 import fr.qsh.ktmongo.sync.filter
@@ -8,6 +7,7 @@ import fr.qsh.ktmongo.sync.filter
 data class Jedi(
 	val name: String,
 	val age: Int,
+	val level: Int,
 )
 
 fun main() {
@@ -26,7 +26,7 @@ fun main() {
 
 	collection.filter {
 		Jedi::name eq "foo"
-	}.updateOne(UpdateOptions().upsert(true)) {
+	}.upsertOne {
 		Jedi::age set 19
 	}
 }
