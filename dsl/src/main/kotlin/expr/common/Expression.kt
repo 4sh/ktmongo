@@ -57,6 +57,9 @@ abstract class Expression(
 	 * it may use this function to replace itself by that child.
 	 *
 	 * **Implementations must be pure.**
+	 *
+	 * @return The simplified expression.
+	 * Returning `null` means that the entire expression has been simplified to a no-op, and can be removed.
 	 */
 	@LowLevelApi
 	open fun simplify(): Expression? = this
