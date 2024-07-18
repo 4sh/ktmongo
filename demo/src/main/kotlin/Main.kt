@@ -2,7 +2,6 @@ package fr.qsh.ktmongo.demo
 
 import com.mongodb.kotlin.client.MongoClient
 import fr.qsh.ktmongo.sync.asKtMongo
-import fr.qsh.ktmongo.sync.find
 
 data class Jedi(
 	val name: String,
