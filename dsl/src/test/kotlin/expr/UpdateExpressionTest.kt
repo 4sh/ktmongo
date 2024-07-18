@@ -44,6 +44,7 @@ class UpdateExpressionTest : FunSpec({
 	val set = "\$set"
 	val setOnInsert = "\$setOnInsert"
 	val inc = "\$inc"
+	val unset = "\$unset"
 
 	test("Empty update") {
 		update<User> { } shouldBeBson """{}"""
@@ -163,6 +164,46 @@ class UpdateExpressionTest : FunSpec({
 					"$inc": {
 						"money": 5.2,
 						"bestFriend.money": -5.199999809265137
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $unset") {
+		test("Single field") {
+			update {
+				User::money.unset()
+			} shouldBeBson """
+				{
+					"$unset": {
+						"money": true
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Nested field") {
+			update {
+				(User::bestFriend / Friend::money).unset()
+			} shouldBeBson """
+				{
+					"$unset": {
+						"bestFriend.money": true
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Multiple fields") {
+			update {
+				User::money.unset()
+				User::bestFriend.unset()
+			} shouldBeBson """
+				{
+					"$unset": {
+						"money": true,
+						"bestFriend": true
 					}
 				}
 			""".trimIndent()

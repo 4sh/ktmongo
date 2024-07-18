@@ -19,6 +19,7 @@
 
 ### Update
 
-- [`$inc`](fr.qsh.ktmongo.dsl.expr.UpdateExpression.inc)
+- [`$inc`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.inc]
 - [`$set`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.set]
-- [`$setOnInsert`](fr.qsh.ktmongo.dsl.expr.UpdateExpression.setOnInsert)
+- [`$setOnInsert`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.setOnInsert]
+- [`$unset`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.unset]

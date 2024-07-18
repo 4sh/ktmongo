@@ -226,6 +226,57 @@ class UpdateExpression<T>(
 	}
 
 	// endregion
+	// region $unset
+
+	/**
+	 * Deletes a field.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 *     val alive: Boolean,
+	 * )
+	 *
+	 * collection.filter {
+	 *     User::name eq "Luke Skywalker"
+	 * }.updateOne {
+	 *     User::age.unset()
+	 *     User::alive set false
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/update/unset/)
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun <@OnlyInputTypes V> KProperty1<T, V>.unset() {
+		accept(UnsetExpressionNode(listOf(this.path()), codec))
+	}
+
+	@LowLevelApi
+	private class UnsetExpressionNode(
+		val fields: List<Path>,
+		codec: CodecRegistry,
+	) : UpdateExpressionNode(codec) {
+		override fun simplify(): Expression? =
+			this.takeUnless { fields.isEmpty() }
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument("\$unset") {
+				for (field in fields) {
+					writer.writeName(field.toString())
+					writer.writeBoolean(true)
+				}
+			}
+		}
+	}
+
+	// endregion
 
 	companion object {
 		@OptIn(LowLevelApi::class)
@@ -238,6 +289,9 @@ class UpdateExpression<T>(
 			},
 			OperatorCombinator(IncrementExpressionNode::class) { sources, codec ->
 				IncrementExpressionNode(sources.flatMap { it.mappings }, codec)
+			},
+			OperatorCombinator(UnsetExpressionNode::class) { sources, codec ->
+				UnsetExpressionNode(sources.flatMap { it.fields }, codec)
 			},
 		)
 	}
