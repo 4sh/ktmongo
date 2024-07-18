@@ -3,6 +3,7 @@ package fr.qsh.ktmongo.dsl.expr
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.withLoggedContext
 import fr.qsh.ktmongo.dsl.path.div
+import fr.qsh.ktmongo.dsl.path.get
 import fr.qsh.ktmongo.dsl.writeDocument
 import io.kotest.core.spec.style.FunSpec
 import org.bson.BsonDocument
@@ -45,6 +46,7 @@ class UpdateExpressionTest : FunSpec({
 	val setOnInsert = "\$setOnInsert"
 	val inc = "\$inc"
 	val unset = "\$unset"
+	val rename = "\$rename"
 
 	test("Empty update") {
 		update<User> { } shouldBeBson """{}"""
@@ -204,6 +206,34 @@ class UpdateExpressionTest : FunSpec({
 					"$unset": {
 						"money": true,
 						"bestFriend": true
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Operator $rename") {
+		test("Single and nested field") {
+			update {
+				User::bestFriend / Friend::name renameTo User::name
+			} shouldBeBson """
+				{
+					"$rename": {
+						"bestFriend.name": "name"
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Multiple fields") {
+			update {
+				User::bestFriend / Friend::name renameTo User::name
+				User::friends[0] / Friend::name renameTo User::friends[1] / Friend::name
+			} shouldBeBson """
+				{
+					"$rename": {
+						"bestFriend.name": "name",
+						"friends.$0.name": "friends.$1.name"
 					}
 				}
 			""".trimIndent()

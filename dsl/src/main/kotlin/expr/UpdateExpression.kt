@@ -277,6 +277,54 @@ class UpdateExpression<T>(
 	}
 
 	// endregion
+	// region $rename
+
+	/**
+	 * Renames a field.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val age: Int,
+	 *     val ageOld: Int,
+	 * )
+	 *
+	 * collection.updateMany {
+	 *     User::ageOld renameTo User::age
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/update/rename/)
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, V>.renameTo(newName: KProperty1<T, V>) {
+		accept(RenameExpressionNode(listOf(this.path() to newName.path()), codec))
+	}
+
+	@LowLevelApi
+	private class RenameExpressionNode(
+		val fields: List<Pair<Path, Path>>,
+		codec: CodecRegistry,
+	) : UpdateExpressionNode(codec) {
+		override fun simplify(): Expression? =
+			this.takeUnless { fields.isEmpty() }
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument("\$rename") {
+				for ((before, after) in fields) {
+					writer.writeName(before.toString())
+					writer.writeString(after.toString())
+				}
+			}
+		}
+	}
+
+	// endregion
 
 	companion object {
 		@OptIn(LowLevelApi::class)
@@ -292,6 +340,9 @@ class UpdateExpression<T>(
 			},
 			OperatorCombinator(UnsetExpressionNode::class) { sources, codec ->
 				UnsetExpressionNode(sources.flatMap { it.fields }, codec)
+			},
+			OperatorCombinator(RenameExpressionNode::class) { sources, codec ->
+				RenameExpressionNode(sources.flatMap { it.fields }, codec)
 			},
 		)
 	}
