@@ -11,6 +11,13 @@ import org.bson.codecs.configuration.CodecRegistry
  * DSL for MongoDB operators that are used as predicates in conditions in a context where the targeted field is already
  * specified.
  */
+// TODO: PredicateExpression should allow further property nesting
+//     {
+//         "foo": {
+//             "$gte": 10,
+//             "bar": 11
+//         }
+//     }
 @KtMongoDsl
 class PredicateExpression<T>(
 	codec: CodecRegistry,
