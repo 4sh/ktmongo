@@ -2,11 +2,12 @@ package fr.qsh.ktmongo.demo
 
 import com.mongodb.kotlin.client.MongoClient
 import fr.qsh.ktmongo.sync.asKtMongo
-import fr.qsh.ktmongo.sync.find
+import fr.qsh.ktmongo.sync.filter
 
 data class Jedi(
 	val name: String,
 	val age: Int,
+	val level: Int,
 )
 
 fun main() {
@@ -21,5 +22,12 @@ fun main() {
 			Jedi::age.doesNotExist()
 			Jedi::age eq 18
 		}
+	}
+
+	collection.filter {
+		Jedi::name eq "foo"
+	}.upsertOne {
+		Jedi::age set 19
+		Jedi::level inc 1
 	}
 }

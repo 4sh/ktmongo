@@ -1,8 +1,10 @@
 package fr.qsh.ktmongo.dsl.expr.common
 
 import fr.qsh.ktmongo.dsl.LowLevelApi
+import fr.qsh.ktmongo.dsl.writeDocument
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
+import org.bson.BsonInvalidOperationException
 import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
 
@@ -57,6 +59,9 @@ abstract class Expression(
 	 * it may use this function to replace itself by that child.
 	 *
 	 * **Implementations must be pure.**
+	 *
+	 * @return The simplified expression.
+	 * Returning `null` means that the entire expression has been simplified to a no-op, and can be removed.
 	 */
 	@LowLevelApi
 	open fun simplify(): Expression? = this
@@ -71,6 +76,14 @@ abstract class Expression(
 		this.simplify()?.write(writer)
 	}
 
+	private fun writeWithSimplifications(writer: BsonWriter, simplified: Boolean) {
+		@OptIn(LowLevelApi::class)
+		if (simplified)
+			writeTo(writer)
+		else
+			write(writer)
+	}
+
 	/**
 	 * Returns a JSON representation of this node.
 	 *
@@ -83,10 +96,19 @@ abstract class Expression(
 			.withLoggedContext()
 
 		@OptIn(LowLevelApi::class)
-		if (simplified)
-			writeTo(writer)
-		else
-			write(writer)
+		try {
+			writeWithSimplifications(writer, simplified)
+		} catch (e: BsonInvalidOperationException) {
+			// Some operators cannot be written to the root document,
+			// and require a surrounding document.
+			// This isn't a problem in production code, because the DSLs are type-safe,
+			// and cannot be called in the wrong context.
+			// However, it is a problem for toString, which can be called in any context
+			// to help debug. If writing this fake document fails too, we give up.
+			writer.writeDocument {
+				writeWithSimplifications(writer, simplified)
+			}
+		}
 
 		return document.toString()
 	}

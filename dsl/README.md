@@ -16,3 +16,11 @@
 - [`$not`][fr.qsh.ktmongo.dsl.expr.FilterExpression.not]
 - [`$or`][fr.qsh.ktmongo.dsl.expr.FilterExpression.or]
 - [`$type`][fr.qsh.ktmongo.dsl.expr.FilterExpression.hasType]
+
+### Update
+
+- [`$inc`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.inc]
+- [`$rename`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.renameTo]
+- [`$set`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.set]
+- [`$setOnInsert`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.setOnInsert]
+- [`$unset`][fr.qsh.ktmongo.dsl.expr.UpdateExpression.unset]
