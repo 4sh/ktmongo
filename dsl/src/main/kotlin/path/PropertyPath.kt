@@ -18,7 +18,7 @@ import kotlin.reflect.*
  */
 @LowLevelApi
 @Suppress("NO_REFLECTION_IN_CLASS_PATH") // None of the functions are called by our code. The caller is responsible for fixing this.
-private class PropertyPath<RootParent, Value>(
+internal class PropertyPath<RootParent, Value>(
 	/**
 	 * The path of this property.
 	 *

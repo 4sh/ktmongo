@@ -4,6 +4,7 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
+import fr.qsh.ktmongo.dsl.path.PropertyPath
 import fr.qsh.ktmongo.dsl.path.path
 import fr.qsh.ktmongo.dsl.writeArray
 import fr.qsh.ktmongo.dsl.writeDocument
@@ -280,6 +281,9 @@ class FilterExpression<T>(
 	 * ### External resources
 	 *
 	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/)
+	 *
+	 * @see eqNotNull To only filter when the value is non-null.
+	 * @see contains To make an equality check on one of the elements of a collection.
 	 */
 	@KtMongoDsl
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.eq(value: V) {
@@ -349,6 +353,78 @@ class FilterExpression<T>(
 	@KtMongoDsl
 	infix fun <@OnlyInputTypes V> KProperty1<T, V>.ne(value: V) {
 		this { ne(value) }
+	}
+
+	// endregion
+	// region Predicates on array elements
+
+	/**
+	 * Allows to declare filters on the items of the specified field.
+	 *
+	 * ### Example
+	 *
+	 * This example will return all users who have at least one grade above 10:
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val grades: List<Int>,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::grades.items() gte 10
+	 * }
+	 * ```
+	 *
+	 * ### Behavior with non-array fields
+	 *
+	 * TODO
+	 *
+	 * ### Using multiple criteria
+	 *
+	 * @see fr.qsh.ktmongo.dsl.path.get Refer to a specific item by its index.
+	 */
+	@OptIn(LowLevelApi::class)
+	fun <@OnlyInputTypes V> KProperty1<T, Collection<V>>.items(): KProperty1<T, V> =
+		PropertyPath(
+			path = this.path(),
+			backingProperty = this,
+		)
+
+	/**
+	 * Matches documents where one of the items in the specified field is [value].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val addresses: List<String>,
+	 * )
+	 *
+	 * collection.find {
+	 *     User::addresses contains "Some address"
+	 * }
+	 * ```
+	 *
+	 * All documents for which one of the `addresses` is equal to "Some address" are returned.
+	 *
+	 * ### Behavior with non-array fields
+	 *
+	 * MongoDB doesn't make a difference between "checking if one of the elements of an array matches the predicate" and "checking if the field matches the predicate".
+	 *
+	 * In the previous example, if a document had a field named `addresses` that was a `String` (**not** a `List<String>`), and its value was "Some address", it would be returned as well.
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/eq/#array-element-equals-a-value)
+	 *
+	 * @see eq To make an equality check on the array itself, instead of one its elements.
+	 * @see items Perform other kinds of filters on one of the items of an array.
+	 * @see UpdateExpression.matched Update the element item matched by this function.
+	 */
+	@KtMongoDsl
+	infix fun <@OnlyInputTypes V> KProperty1<T, Collection<V>>.contains(value: V) {
+		this.items() eq value
 	}
 
 	// endregion

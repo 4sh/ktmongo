@@ -5,8 +5,7 @@ import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.expr.common.acceptAll
-import fr.qsh.ktmongo.dsl.path.Path
-import fr.qsh.ktmongo.dsl.path.path
+import fr.qsh.ktmongo.dsl.path.*
 import fr.qsh.ktmongo.dsl.writeDocument
 import fr.qsh.ktmongo.dsl.writeObject
 import org.bson.BsonWriter
@@ -323,6 +322,40 @@ class UpdateExpression<T>(
 			}
 		}
 	}
+
+	// endregion
+	// region Array indexing operators: $, $[]
+
+	/**
+	 * Selects the item matched by [contains][FilterExpression.contains].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val friends: List<Friend>,
+	 * )
+	 *
+	 * class Friend(
+	 *     val name: String,
+	 *     val score: Int,
+	 * )
+	 *
+	 * collection.filter {
+	 *     User::name eq "Foo"
+	 *     User::friends contains {
+	 *         Friend:: TODO
+	 *     }
+	 * }
+	 * ```
+	 */
+	@OptIn(LowLevelApi::class)
+	fun <T0, T1> KProperty1<T0, Collection<T1>>.matched(): KProperty1<T0, T1> =
+		PropertyPath(
+			path = this.path() + PathSegment.Positional,
+			backingProperty = this,
+		)
 
 	// endregion
 

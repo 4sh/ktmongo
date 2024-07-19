@@ -23,6 +23,10 @@ class FilterExpressionTest : FunSpec({
 	val type = "\$type"
 	val not = "\$not"
 	val isOneOf = "\$in"
+	val gt = "\$gt"
+	val gte = "\$gte"
+	val lt = "\$lt"
+	val lte = "\$lte"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -376,11 +380,6 @@ class FilterExpressionTest : FunSpec({
 	}
 
 	context("Comparison operators") {
-		val gt = "\$gt"
-		val gte = "\$gte"
-		val lt = "\$lt"
-		val lte = "\$lte"
-
 		test("int $gt") {
 			filter {
 				User::age gt 12
@@ -423,6 +422,41 @@ class FilterExpressionTest : FunSpec({
 			} shouldBeBson """
 				{
 					"age": {
+						"$lte": 12
+					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Array operators") {
+		class Grades(
+			val userId: String,
+			val grades: List<Int>,
+		)
+
+		test("Search for a specific grade") {
+			filter {
+				Grades::grades contains 12
+			} shouldBeBson """
+				{
+					"grades": {
+						"$eq": 12
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Search for a set of grades") {
+			filter {
+				Grades::grades contains {
+					gt(10)
+					lte(12)
+				}
+			} shouldBeBson """
+				{
+					"grades": {
+						"$gt": 10,
 						"$lte": 12
 					}
 				}
