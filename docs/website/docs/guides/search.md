@@ -1,7 +1,7 @@
 # Find data
 
 !!! note ""
-Before retrieving data, you must [connect to the database and obtain a collection](setup.md).
+    Before retrieving data, you must [connect to the database and obtain a collection](setup.md).
 
 Let's assume we have the following class:
 
