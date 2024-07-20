@@ -87,6 +87,7 @@ nav:
       - guides/overview.md
       - guides/setup.md
       - guides/search.md
+      - guides/update.md
 
   - Migrating from KMongo:
       - migrate-from-kmongo/why.md
