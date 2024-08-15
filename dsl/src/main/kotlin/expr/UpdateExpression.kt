@@ -6,7 +6,7 @@ import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.expr.common.acceptAll
 import fr.qsh.ktmongo.dsl.path.Path
-import fr.qsh.ktmongo.dsl.path.path
+import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
 import fr.qsh.ktmongo.dsl.writeDocument
 import fr.qsh.ktmongo.dsl.writeObject
 import org.bson.BsonWriter
@@ -23,7 +23,7 @@ import kotlin.reflect.KProperty1
 @KtMongoDsl
 class UpdateExpression<T>(
 	codec: CodecRegistry,
-) : CompoundExpression(codec) {
+) : CompoundExpression(codec), PropertySyntaxScope {
 
 	// region Low-level operations
 

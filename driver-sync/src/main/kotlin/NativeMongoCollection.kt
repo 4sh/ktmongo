@@ -35,21 +35,30 @@ class NativeMongoCollection<Document : Any>(
 	// region Find
 
 	override fun find(): FindIterable<Document> =
-		unsafe.find()
+		when (val session = getCurrentSession()) {
+			null -> unsafe.find()
+			else -> unsafe.find(session)
+		}
 
 	override fun find(predicate: FilterExpression<Document>.() -> Unit): FindIterable<Document> {
 		val bson = FilterExpression<Document>(unsafe.codecRegistry)
 			.apply(predicate)
 			.toBsonDocument()
 
-		return unsafe.find(bson)
+		return when (val session = getCurrentSession()) {
+			null -> unsafe.find(bson)
+			else -> unsafe.find(session, bson)
+		}
 	}
 
 	// endregion
 	// region Count
 
 	override fun count(options: CountOptions): Long =
-		unsafe.countDocuments(options = options)
+		when (val session = getCurrentSession()) {
+			null -> unsafe.countDocuments(options = options)
+			else -> unsafe.countDocuments(session, options = options)
+		}
 
 	override fun count(
 		options: CountOptions,
@@ -59,11 +68,17 @@ class NativeMongoCollection<Document : Any>(
 			.apply(predicate)
 			.toBsonDocument()
 
-		return unsafe.countDocuments(bson, options)
+		return when (val session = getCurrentSession()) {
+			null -> unsafe.countDocuments(bson, options)
+			else -> unsafe.countDocuments(session, bson, options)
+		}
 	}
 
 	override fun countEstimated(options: EstimatedDocumentCountOptions): Long =
-		unsafe.estimatedDocumentCount(options)
+		when (getCurrentSession()) {
+			null -> unsafe.estimatedDocumentCount(options)
+			else -> countForReal(options) // Downgrade to a regular count
+		}
 
 	// endregion
 	// region Update
@@ -81,11 +96,10 @@ class NativeMongoCollection<Document : Any>(
 			.apply(update)
 			.toBsonDocument()
 
-		return unsafe.updateOne(
-			filter = filterBson,
-			update = updateBson,
-			options = options,
-		)
+		return when (val session = getCurrentSession()) {
+			null -> unsafe.updateOne(filterBson, updateBson, options)
+			else -> unsafe.updateOne(session, filterBson, updateBson, options)
+		}
 	}
 
 	override fun updateMany(
@@ -101,11 +115,10 @@ class NativeMongoCollection<Document : Any>(
 			.apply(update)
 			.toBsonDocument()
 
-		return unsafe.updateMany(
-			filter = filterBson,
-			update = updateBson,
-			options = options,
-		)
+		return when (val session = getCurrentSession()) {
+			null -> unsafe.updateMany(filterBson, updateBson, options)
+			else -> unsafe.updateMany(session, filterBson, updateBson, options)
+		}
 	}
 
 	override fun findOneAndUpdate(
@@ -121,11 +134,10 @@ class NativeMongoCollection<Document : Any>(
 			.apply(update)
 			.toBsonDocument()
 
-		return unsafe.findOneAndUpdate(
-			filter = filterBson,
-			update = updateBson,
-			options = options,
-		)
+		return when (val session = getCurrentSession()) {
+			null -> unsafe.findOneAndUpdate(filterBson, updateBson, options)
+			else -> unsafe.findOneAndUpdate(session, filterBson, updateBson, options)
+		}
 	}
 
 	// endregion

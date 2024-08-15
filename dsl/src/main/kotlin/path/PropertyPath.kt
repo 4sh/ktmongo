@@ -67,78 +67,82 @@ private class PropertyPath<RootParent, Value>(
 	override fun toString() = path.toString()
 }
 
-@LowLevelApi
-fun KProperty1<*, *>.path() =
-	if (this is PropertyPath<*, *>) this.path
-	else Path.root(PathSegment.Field(this.name))
+interface PropertySyntaxScope {
 
-/**
- * Combines Kotlin properties into a path usable to point to a specific field in a document.
- *
- * ### Examples
- *
- * ```kotlin
- * class User(
- *     val id: Int,
- *     val profile: Profile,
- * )
- *
- * class Profile(
- *     val name: String,
- *     val age: Int,
- * )
- *
- * // Refer to the id
- * println(User::id)
- * // → 'id'
- *
- * // Refer to the name
- * println(User::profile / Profile::name)
- * // → 'profile.name'
- *
- * // Refer to the name
- * println(User::profile / Profile::age)
- * // → 'profile.age'
- * ```
- *
- * @see get Indexed access (`.$0.`)
- */
-@OptIn(LowLevelApi::class)
-operator fun <T0, T1, T2> KProperty1<T0, T1>.div(child: KProperty1<T1, T2>): KProperty1<T0, T2> =
-	PropertyPath(
-		path = this.path() + PathSegment.Field(child.name),
-		backingProperty = child,
-	)
+	@LowLevelApi
+	fun KProperty1<*, *>.path() =
+		if (this is PropertyPath<*, *>) this.path
+		else Path.root(PathSegment.Field(this.name))
 
-/**
- * Denotes a specific item in an array, by index.
- *
- * ### Examples
- *
- * ```kotlin
- * class User(
- *     val name: String,
- *     val friends: List<Friend>,
- * )
- *
- * class Friend(
- *     val name: String,
- * )
- *
- * // Refer to the first friend
- * println(User::friends[0])
- * // → 'friends.$0'
- *
- * // Refer to the third friend's name
- * println(User::friends[2] / Friend::name)
- * // → 'friends.$0.name'
- * ```
- *
- * @see div Access based on the field name (`.foo.`)
- */
-@OptIn(LowLevelApi::class)
-operator fun <T0, T1> KProperty1<T0, Collection<T1>>.get(index: Int): KProperty1<T0, T1> =
-	PropertyPath(
-		path = this.path() + PathSegment.Indexed(index),
-		backingProperty = this,
-	)
+	/**
+	 * Combines Kotlin properties into a path usable to point to a specific field in a document.
+	 *
+	 * ### Examples
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val id: Int,
+	 *     val profile: Profile,
+	 * )
+	 *
+	 * class Profile(
+	 *     val name: String,
+	 *     val age: Int,
+	 * )
+	 *
+	 * // Refer to the id
+	 * println(User::id)
+	 * // → 'id'
+	 *
+	 * // Refer to the name
+	 * println(User::profile / Profile::name)
+	 * // → 'profile.name'
+	 *
+	 * // Refer to the name
+	 * println(User::profile / Profile::age)
+	 * // → 'profile.age'
+	 * ```
+	 *
+	 * @see get Indexed access (`.$0.`)
+	 */
+	@OptIn(LowLevelApi::class)
+	operator fun <T0, T1, T2> KProperty1<T0, T1>.div(child: KProperty1<T1, T2>): KProperty1<T0, T2> =
+		PropertyPath(
+			path = this.path() + PathSegment.Field(child.name),
+			backingProperty = child,
+		)
+
+	/**
+	 * Denotes a specific item in an array, by index.
+	 *
+	 * ### Examples
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val friends: List<Friend>,
+	 * )
+	 *
+	 * class Friend(
+	 *     val name: String,
+	 * )
+	 *
+	 * // Refer to the first friend
+	 * println(User::friends[0])
+	 * // → 'friends.$0'
+	 *
+	 * // Refer to the third friend's name
+	 * println(User::friends[2] / Friend::name)
+	 * // → 'friends.$0.name'
+	 * ```
+	 *
+	 * @see div Access based on the field name (`.foo.`)
+	 */
+	@OptIn(LowLevelApi::class)
+	operator fun <T0, T1> KProperty1<T0, Collection<T1>>.get(index: Int): KProperty1<T0, T1> =
+		PropertyPath(
+			path = this.path() + PathSegment.Indexed(index),
+			backingProperty = this,
+		)
+
+}

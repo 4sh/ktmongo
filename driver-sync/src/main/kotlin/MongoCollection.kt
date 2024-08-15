@@ -8,6 +8,7 @@ import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import fr.qsh.ktmongo.dsl.expr.UpdateExpression
+import java.util.concurrent.TimeUnit
 
 /**
  * Parent interface to all collection types provided by KtMongo.
@@ -135,6 +136,8 @@ sealed interface MongoCollection<Document : Any> {
 	 *
 	 * Views do not possess the required metadata.
 	 * When this function is called on a view (either a MongoDB view or a [filter] logical view), a regular [count] is executed instead.
+	 *
+	 * When this function is called from within a [transaction], a regular [count] is executed instead.
 	 *
 	 * ### External resources
 	 *
@@ -341,3 +344,13 @@ sealed interface MongoCollection<Document : Any> {
 	// endregion
 
 }
+
+internal fun <Document : Any> MongoCollection<Document>.countForReal(
+	options: EstimatedDocumentCountOptions,
+	predicate: FilterExpression<Document>.() -> Unit = {},
+) = count(
+	options = CountOptions()
+		.maxTime(options.getMaxTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
+		.comment(options.comment),
+	predicate = predicate
+)

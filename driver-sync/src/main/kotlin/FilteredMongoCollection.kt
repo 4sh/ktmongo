@@ -8,7 +8,6 @@ import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import fr.qsh.ktmongo.dsl.expr.UpdateExpression
-import java.util.concurrent.TimeUnit
 
 private class FilteredMongoCollection<Document : Any>(
 	private val upstream: MongoCollection<Document>,
@@ -19,8 +18,8 @@ private class FilteredMongoCollection<Document : Any>(
 	override fun count(options: CountOptions): Long = upstream.count(options, baseFilter)
 
 	// countEstimated is a real count when a filter is present, it's slower but at least it won't break the app
-	override fun countEstimated(options: EstimatedDocumentCountOptions): Long = upstream.count(
-		CountOptions().maxTime(options.getMaxTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS).comment(options.comment),
+	override fun countEstimated(options: EstimatedDocumentCountOptions): Long = upstream.countForReal(
+		options,
 		baseFilter,
 	)
 

@@ -3,6 +3,7 @@ package fr.qsh.ktmongo.dsl.expr
 import fr.qsh.ktmongo.dsl.*
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
+import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
 import org.bson.BsonType
 import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
@@ -14,7 +15,7 @@ import org.bson.codecs.configuration.CodecRegistry
 @KtMongoDsl
 class PredicateExpression<T>(
 	codec: CodecRegistry,
-) : CompoundExpression(codec) {
+) : CompoundExpression(codec), PropertySyntaxScope {
 
 	// region Low-level operations
 

@@ -4,7 +4,7 @@ import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
-import fr.qsh.ktmongo.dsl.path.path
+import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
 import fr.qsh.ktmongo.dsl.writeArray
 import fr.qsh.ktmongo.dsl.writeDocument
 import org.bson.BsonType
@@ -22,7 +22,7 @@ import kotlin.reflect.KProperty1
 @KtMongoDsl
 class FilterExpression<T>(
 	codec: CodecRegistry,
-) : CompoundExpression(codec) {
+) : CompoundExpression(codec), PropertySyntaxScope {
 
 	// region Low-level operations
 
