@@ -2,8 +2,6 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.common.withLoggedContext
-import fr.qsh.ktmongo.dsl.path.div
-import fr.qsh.ktmongo.dsl.path.get
 import fr.qsh.ktmongo.dsl.writeDocument
 import io.kotest.core.spec.style.FunSpec
 import org.bson.BsonDocument

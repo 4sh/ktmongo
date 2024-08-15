@@ -24,28 +24,40 @@ class PropertyPathTest : FunSpec({
 		val friends: List<Friend>,
 	)
 
-	// force 'User' to ensure all functions keep the User as the root type
-	infix fun KProperty1<User, *>.shouldHavePath(path: String) =
-		this.path().toString() shouldBe path
+	class PropertySyntaxTestScope : PropertySyntaxScope {
+
+		// force 'User' to ensure all functions keep the User as the root type
+		infix fun KProperty1<User, *>.shouldHavePath(path: String) =
+			this.path().toString() shouldBe path
+
+	}
 
 	context("Field access") {
 		test("Root field") {
-			User::id shouldHavePath "id"
+			with(PropertySyntaxTestScope()) {
+				User::id shouldHavePath "id"
+			}
 		}
 
 		test("Nested field") {
-			User::profile / Profile::name shouldHavePath "profile.name"
-			User::profile / Profile::age shouldHavePath "profile.age"
+			with(PropertySyntaxTestScope()) {
+				User::profile / Profile::name shouldHavePath "profile.name"
+				User::profile / Profile::age shouldHavePath "profile.age"
+			}
 		}
 	}
 
 	context("Indexed access") {
 		test("Indexed object") {
-			User::friends[0] shouldHavePath "friends.$0"
+			with(PropertySyntaxTestScope()) {
+				User::friends[0] shouldHavePath "friends.$0"
+			}
 		}
 
 		test("Indexed nested field") {
-			User::friends[0] / Friend::name shouldHavePath "friends.$0.name"
+			with(PropertySyntaxTestScope()) {
+				User::friends[0] / Friend::name shouldHavePath "friends.$0.name"
+			}
 		}
 	}
 })
