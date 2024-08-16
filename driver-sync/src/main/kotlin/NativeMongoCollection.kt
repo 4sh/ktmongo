@@ -32,6 +32,19 @@ class NativeMongoCollection<Document : Any>(
 		return bson
 	}
 
+	@OptIn(LowLevelApi::class)
+	private fun CompoundExpression.toNestedBsonDocument(): BsonDocument {
+		val bson = BsonDocument()
+
+		BsonDocumentWriter(bson).use { writer ->
+			writer.writeStartDocument()
+			this.writeTo(writer)
+			writer.writeEndDocument()
+		}
+
+		return bson
+	}
+
 	// region Find
 
 	override fun find(): FindIterable<Document> =
@@ -94,7 +107,7 @@ class NativeMongoCollection<Document : Any>(
 
 		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
 			.apply(update)
-			.toBsonDocument()
+			.toNestedBsonDocument()
 
 		return when (val session = getCurrentSession()) {
 			null -> unsafe.updateOne(filterBson, updateBson, options)
@@ -113,7 +126,7 @@ class NativeMongoCollection<Document : Any>(
 
 		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
 			.apply(update)
-			.toBsonDocument()
+			.toNestedBsonDocument()
 
 		return when (val session = getCurrentSession()) {
 			null -> unsafe.updateMany(filterBson, updateBson, options)
@@ -132,7 +145,7 @@ class NativeMongoCollection<Document : Any>(
 
 		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
 			.apply(update)
-			.toBsonDocument()
+			.toNestedBsonDocument()
 
 		return when (val session = getCurrentSession()) {
 			null -> unsafe.findOneAndUpdate(filterBson, updateBson, options)
