@@ -2,7 +2,8 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.expr.common.acceptAll
 import fr.qsh.ktmongo.dsl.path.Path
@@ -23,21 +24,21 @@ import kotlin.reflect.KProperty1
 @KtMongoDsl
 class UpdateExpression<T>(
 	codec: CodecRegistry,
-) : CompoundExpression(codec), PropertySyntaxScope {
+) : AbstractCompoundExpression(codec), PropertySyntaxScope {
 
 	// region Low-level operations
 
-	private class OperatorCombinator<T : Expression>(
+	private class OperatorCombinator<T : AbstractExpression>(
 		val type: KClass<T>,
 		val combinator: (List<T>, CodecRegistry) -> T
 	) {
 		@Suppress("UNCHECKED_CAST") // This is a private class, it should not be used incorrectly
-		operator fun invoke(sources: List<Expression>, codec: CodecRegistry) =
+		operator fun invoke(sources: List<AbstractExpression>, codec: CodecRegistry) =
 			combinator(sources as List<T>, codec)
 	}
 
 	@LowLevelApi
-	override fun simplify(children: List<Expression>): Expression? {
+	override fun simplify(children: List<Expression>): AbstractExpression? {
 		if (children.isEmpty())
 			return null
 
@@ -60,7 +61,7 @@ class UpdateExpression<T>(
 	}
 
 	@LowLevelApi
-	private sealed class UpdateExpressionNode(codec: CodecRegistry) : Expression(codec)
+	private sealed class UpdateExpressionNode(codec: CodecRegistry) : AbstractExpression(codec)
 
 	// endregion
 	// region $set
@@ -157,7 +158,7 @@ class UpdateExpression<T>(
 		val mappings: List<Pair<Path, *>>,
 		codec: CodecRegistry,
 	) : UpdateExpressionNode(codec) {
-		override fun simplify(): Expression? =
+		override fun simplify(): AbstractExpression? =
 			this.takeUnless { mappings.isEmpty() }
 
 		override fun write(writer: BsonWriter) {
@@ -212,7 +213,7 @@ class UpdateExpression<T>(
 		val mappings: List<Pair<Path, Number>>,
 		codec: CodecRegistry,
 	) : UpdateExpressionNode(codec) {
-		override fun simplify(): Expression? =
+		override fun simplify(): AbstractExpression? =
 			this.takeUnless { mappings.isEmpty() }
 
 		override fun write(writer: BsonWriter) {
@@ -263,7 +264,7 @@ class UpdateExpression<T>(
 		val fields: List<Path>,
 		codec: CodecRegistry,
 	) : UpdateExpressionNode(codec) {
-		override fun simplify(): Expression? =
+		override fun simplify(): AbstractExpression? =
 			this.takeUnless { fields.isEmpty() }
 
 		override fun write(writer: BsonWriter) {
@@ -311,7 +312,7 @@ class UpdateExpression<T>(
 		val fields: List<Pair<Path, Path>>,
 		codec: CodecRegistry,
 	) : UpdateExpressionNode(codec) {
-		override fun simplify(): Expression? =
+		override fun simplify(): AbstractExpression? =
 			this.takeUnless { fields.isEmpty() }
 
 		override fun write(writer: BsonWriter) {

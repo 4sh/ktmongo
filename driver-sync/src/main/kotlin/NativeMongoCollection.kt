@@ -9,7 +9,7 @@ import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import fr.qsh.ktmongo.dsl.expr.UpdateExpression
-import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 import com.mongodb.kotlin.client.MongoCollection as OfficialMongoCollection
@@ -22,11 +22,24 @@ class NativeMongoCollection<Document : Any>(
 	fun asOfficialMongoCollection() = unsafe
 
 	@OptIn(LowLevelApi::class)
-	private fun CompoundExpression.toBsonDocument(): BsonDocument {
+	private fun AbstractCompoundExpression.toBsonDocument(): BsonDocument {
 		val bson = BsonDocument()
 
 		BsonDocumentWriter(bson).use { writer ->
 			this.writeTo(writer)
+		}
+
+		return bson
+	}
+
+	@OptIn(LowLevelApi::class)
+	private fun AbstractCompoundExpression.toNestedBsonDocument(): BsonDocument {
+		val bson = BsonDocument()
+
+		BsonDocumentWriter(bson).use { writer ->
+			writer.writeStartDocument()
+			this.writeTo(writer)
+			writer.writeEndDocument()
 		}
 
 		return bson
@@ -94,7 +107,7 @@ class NativeMongoCollection<Document : Any>(
 
 		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
 			.apply(update)
-			.toBsonDocument()
+			.toNestedBsonDocument()
 
 		return when (val session = getCurrentSession()) {
 			null -> unsafe.updateOne(filterBson, updateBson, options)
@@ -113,7 +126,7 @@ class NativeMongoCollection<Document : Any>(
 
 		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
 			.apply(update)
-			.toBsonDocument()
+			.toNestedBsonDocument()
 
 		return when (val session = getCurrentSession()) {
 			null -> unsafe.updateMany(filterBson, updateBson, options)
@@ -132,7 +145,7 @@ class NativeMongoCollection<Document : Any>(
 
 		val updateBson = UpdateExpression<Document>(unsafe.codecRegistry)
 			.apply(update)
-			.toBsonDocument()
+			.toNestedBsonDocument()
 
 		return when (val session = getCurrentSession()) {
 			null -> unsafe.findOneAndUpdate(filterBson, updateBson, options)

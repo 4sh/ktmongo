@@ -15,16 +15,54 @@ import org.bson.codecs.configuration.CodecRegistry
  *
  * ### Security
  *
- * Implementing this interface allows to inject arbitrary BSON into a request.
- * Be very careful not to allow request injections.
+ * Implementing this interface allows injecting arbitrary BSON into a request.
+ * Be very careful not to allow injections.
+ *
+ * ### Implementation notes
+ *
+ * Prefer implementing [AbstractExpression] than implementing this interface directly.
  *
  * ### Debugging notes
  *
  * Use [toString] to generate the JSON of this expression.
  */
-abstract class Expression(
+interface Expression {
+
+	/**
+	 * Makes this expression immutable.
+	 *
+	 * After this method has been called, the expression can never be modified again.
+	 * This ensures that requests cannot change after they have been used by other requests.
+	 */
+	@LowLevelApi
+	fun freeze()
+
+	/**
+	 * Returns a simplified (but equivalent) expression to the current expression.
+	 *
+	 * If `null` is returned, it means the current expression was simplified into a no-op
+	 * (i.e. it does nothing).
+	 */
+	@LowLevelApi
+	fun simplify(): Expression?
+
+	/**
+	 * Writes this expression into a [writer].
+	 *
+	 * Depending on the type of expression, the expected current context may be different.
+	 */
+	@LowLevelApi
+	fun writeTo(writer: BsonWriter)
+
+	companion object
+}
+
+/**
+ * Utility implementation for [Expression], which handles the [codec], [toString] representation and [freezing][freeze].
+ */
+abstract class AbstractExpression(
 	protected val codec: CodecRegistry,
-) {
+) : Expression {
 
 	/**
 	 * See [freeze].
@@ -36,7 +74,7 @@ abstract class Expression(
 	 * Forbid further mutations to this expression.
 	 */
 	@LowLevelApi
-	fun freeze() {
+	final override fun freeze() {
 		frozen = true
 	}
 
@@ -64,7 +102,7 @@ abstract class Expression(
 	 * Returning `null` means that the entire expression has been simplified to a no-op, and can be removed.
 	 */
 	@LowLevelApi
-	open fun simplify(): Expression? = this
+	override fun simplify(): AbstractExpression? = this
 
 	/**
 	 * Writes this expression into a [writer].
@@ -72,7 +110,7 @@ abstract class Expression(
 	 * This function is guaranteed to be pure.
 	 */
 	@LowLevelApi
-	fun writeTo(writer: BsonWriter) {
+	final override fun writeTo(writer: BsonWriter) {
 		this.simplify()?.write(writer)
 	}
 

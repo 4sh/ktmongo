@@ -54,5 +54,11 @@ internal inline fun BsonWriter.writeArray(name: String, block: () -> Unit) {
 internal fun <T> BsonWriter.writeObject(value: T, codec: CodecRegistry) {
 	@Suppress("UNCHECKED_CAST") // Kotlin doesn't smart-cast here, but should, this is safe
 	(codec.get(value!!::class.java) as Encoder<T>)
-		.encode(this, value, EncoderContext.builder().build())
+		.encode(
+			this,
+			value,
+			EncoderContext.builder()
+				.isEncodingCollectibleDocument(true)
+				.build()
+		)
 }
