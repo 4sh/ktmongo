@@ -8,7 +8,34 @@ import java.util.*
 
 /**
  * A compound node in the BSON AST.
- * This class is an implementation detail of all operator DSLs.
+ * This is the supertype for all DSL scopes.
+ *
+ * A compound node is a node that may have children.
+ * It may have 0…n children.
+ *
+ * A new child expression may be added by calling the [accept] function.
+ */
+interface CompoundExpression : Expression {
+
+	/**
+	 * Adds a new [expression] as a child of this one.
+	 *
+	 * Since [Expression] subtypes may generate arbitrary BSON, it is possible to
+	 * use this method to inject arbitrary BSON into any KtMongo DSL.
+	 * However, this is not recommended, because raw BSON is easy to write incorrectly
+	 * (leading to performance issues, syntax errors, or security vulnerabilities).
+	 *
+	 * Instead, we recommend calling the other methods provided by DSLs, which are type-safe
+	 * helpers to call this function.
+	 */
+	@LowLevelApi
+	@KtMongoDsl
+	fun accept(expression: Expression)
+
+}
+
+/**
+ * Helper to implement [CompoundExpression].
  *
  * This class adds the method [accept] which allows binding a child expression
  * into the current one.
@@ -17,9 +44,9 @@ import java.util.*
  *
  * @see Expression
  */
-abstract class CompoundExpression(
+abstract class AbstractCompoundExpression(
 	codec: CodecRegistry,
-) : Expression(codec) {
+) : AbstractExpression(codec), CompoundExpression {
 
 	// region Sub-expression binding
 
@@ -38,7 +65,7 @@ abstract class CompoundExpression(
 	 * It is added to this expression as-is.
 	 *
 	 * This function is only publicly available to allow users to add missing operators themselves
-	 * by implementing [Expression] for their operator.
+	 * by implementing [AbstractExpression] for their operator.
 	 *
 	 * **An incorrectly written expression may allow arbitrary code execution on the database,
 	 * data corruption, or data leaks. Only call this function on expressions you are sure
@@ -46,7 +73,7 @@ abstract class CompoundExpression(
 	 */
 	@LowLevelApi
 	@KtMongoDsl
-	fun accept(expression: Expression) {
+	override fun accept(expression: Expression) {
 		require(!frozen) { "This expression has already been frozen, it cannot accept the child expression $expression" }
 
 		val simplifiedExpression = expression.simplify()
@@ -68,18 +95,18 @@ abstract class CompoundExpression(
 	 * **These children have already been simplified.**
 	 */
 	@LowLevelApi
-	protected open fun simplify(children: List<Expression>): Expression? =
+	protected open fun simplify(children: List<Expression>): AbstractExpression? =
 		this
 
 	@LowLevelApi
-	final override fun simplify(): Expression? =
+	final override fun simplify(): AbstractExpression? =
 		simplify(children)
 
 	// endregion
 	// region Writing
 
 	/**
-	 * See [Expression.write].
+	 * See [AbstractExpression.write].
 	 *
 	 * @param children The list of expressions that have been [bound][accept] into this
 	 * expression.
@@ -105,7 +132,7 @@ abstract class CompoundExpression(
 /**
  * Binds any arbitrary [expressions] as sub-expressions of the receiver.
  *
- * To learn more about the security implications, see [CompoundExpression.accept].
+ * To learn more about the security implications, see [AbstractCompoundExpression.accept].
  */
 @LowLevelApi
 @KtMongoDsl

@@ -1,8 +1,8 @@
 package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.*
-import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
-import fr.qsh.ktmongo.dsl.expr.common.Expression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractExpression
 import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
 import org.bson.BsonType
 import org.bson.BsonWriter
@@ -15,12 +15,12 @@ import org.bson.codecs.configuration.CodecRegistry
 @KtMongoDsl
 class PredicateExpression<T>(
 	codec: CodecRegistry,
-) : CompoundExpression(codec), PropertySyntaxScope {
+) : AbstractCompoundExpression(codec), PropertySyntaxScope {
 
 	// region Low-level operations
 
 	@LowLevelApi
-	private sealed class PredicateExpressionNode(codec: CodecRegistry) : Expression(codec)
+	private sealed class PredicateExpressionNode(codec: CodecRegistry) : AbstractExpression(codec)
 
 	// endregion
 	// region $eq
@@ -332,7 +332,7 @@ class PredicateExpression<T>(
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
-		override fun simplify(): Expression? {
+		override fun simplify(): AbstractExpression? {
 			if (expression.children.isEmpty())
 				return null
 

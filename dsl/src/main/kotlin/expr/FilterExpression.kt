@@ -2,7 +2,8 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
 import fr.qsh.ktmongo.dsl.writeArray
@@ -22,12 +23,12 @@ import kotlin.reflect.KProperty1
 @KtMongoDsl
 class FilterExpression<T>(
 	codec: CodecRegistry,
-) : CompoundExpression(codec), PropertySyntaxScope {
+) : AbstractCompoundExpression(codec), PropertySyntaxScope {
 
 	// region Low-level operations
 
 	@LowLevelApi
-	override fun simplify(children: List<Expression>): Expression? =
+	override fun simplify(children: List<Expression>): AbstractExpression? =
 		when (children.size) {
 			0 -> null
 			1 -> this
@@ -35,7 +36,7 @@ class FilterExpression<T>(
 		}
 
 	@LowLevelApi
-	private sealed class FilterExpressionNode(codec: CodecRegistry) : Expression(codec)
+	private sealed class FilterExpressionNode(codec: CodecRegistry) : AbstractExpression(codec)
 
 	// endregion
 	// region $and, $or
@@ -78,7 +79,7 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun simplify(): Expression? {
+		override fun simplify(): AbstractExpression? {
 			if (declaredChildren.isEmpty())
 				return null
 
@@ -152,7 +153,7 @@ class FilterExpression<T>(
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
 
-		override fun simplify(): Expression? {
+		override fun simplify(): AbstractExpression? {
 			if (declaredChildren.isEmpty())
 				return null
 

@@ -9,7 +9,7 @@ import com.mongodb.kotlin.client.FindIterable
 import fr.qsh.ktmongo.dsl.LowLevelApi
 import fr.qsh.ktmongo.dsl.expr.FilterExpression
 import fr.qsh.ktmongo.dsl.expr.UpdateExpression
-import fr.qsh.ktmongo.dsl.expr.common.CompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 import com.mongodb.kotlin.client.MongoCollection as OfficialMongoCollection
@@ -22,7 +22,7 @@ class NativeMongoCollection<Document : Any>(
 	fun asOfficialMongoCollection() = unsafe
 
 	@OptIn(LowLevelApi::class)
-	private fun CompoundExpression.toBsonDocument(): BsonDocument {
+	private fun AbstractCompoundExpression.toBsonDocument(): BsonDocument {
 		val bson = BsonDocument()
 
 		BsonDocumentWriter(bson).use { writer ->
@@ -33,7 +33,7 @@ class NativeMongoCollection<Document : Any>(
 	}
 
 	@OptIn(LowLevelApi::class)
-	private fun CompoundExpression.toNestedBsonDocument(): BsonDocument {
+	private fun AbstractCompoundExpression.toNestedBsonDocument(): BsonDocument {
 		val bson = BsonDocument()
 
 		BsonDocumentWriter(bson).use { writer ->
