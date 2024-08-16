@@ -497,7 +497,7 @@ class FilterExpressionTest : FunSpec({
 		test("Test on subfields of different array elements") {
 			filter {
 				User::pets.any / Pet::age gt 15
-				User::pets.any / Pet::age lte 18
+				User::pets / Pet::age lte 18  // without 'any', the / does the same thing
 			} shouldBeBson """
 				{
 					"$and": [
@@ -568,7 +568,7 @@ class FilterExpressionTest : FunSpec({
 
 		test("Everything combined") {
 			filter {
-				User::pets.any / Pet::age gt 3
+				User::pets / Pet::age gt 3
 				User::pets.anyObject {
 					Pet::age gte 1
 					Pet::name eq "Chocolat"

@@ -995,6 +995,37 @@ class FilterExpression<T>(
 		get() = this as KProperty1<T, V>
 
 	/**
+	 * Combines Kotlin properties into a path usable to point to any item in an array.
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val grades: List<Grade>
+	 * )
+	 *
+	 * class Grade(
+	 *     val name: Int
+	 * )
+	 *
+	 * collection.find {
+	 *     User::grades / Grade::name eq 19
+	 * }
+	 * ```
+	 *
+	 * This function is a shorthand for `any`:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::grades.any / Gradle::name eq 19
+	 * }
+	 * ```
+	 */
+	@KtMongoDsl
+	@JvmName("anyChild")
+	operator fun <V, V2> KProperty1<T, Collection<V>>.div(other: KProperty1<V, V2>): KProperty1<T, V2> =
+		this.any.div(other)
+
+	/**
 	 * Specify multiple operators on a single array element.
 	 *
 	 * ### Example
