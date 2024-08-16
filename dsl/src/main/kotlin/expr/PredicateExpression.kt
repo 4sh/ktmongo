@@ -782,13 +782,13 @@ class PredicateExpression<T>(
 	 */
 	@OptIn(LowLevelApi::class)
 	@KtMongoDsl
-	fun isOneOf(values: List<T>) {
+	fun isOneOf(values: Collection<T>) {
 		accept(OneOfPredicateExpressionNode(values, codec))
 	}
 
 	@LowLevelApi
 	private class OneOfPredicateExpressionNode<T>(
-		val values: List<T>,
+		val values: Collection<T>,
 		codec: CodecRegistry,
 	) : PredicateExpressionNode(codec) {
 
