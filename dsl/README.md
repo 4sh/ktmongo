@@ -4,6 +4,7 @@
 
 ### Filter
 
+- [`$all`][fr.qsh.ktmongo.dsl.expr.FilterExpression.containsAll]
 - [`$and`][fr.qsh.ktmongo.dsl.expr.FilterExpression.and]
 - [`$elemMatch`][fr.qsh.ktmongo.dsl.expr.FilterExpression.anyObject]
 - [`$eq`][fr.qsh.ktmongo.dsl.expr.FilterExpression.eq]

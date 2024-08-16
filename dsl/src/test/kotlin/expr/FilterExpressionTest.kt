@@ -27,6 +27,7 @@ class FilterExpressionTest : FunSpec({
 	val gte = "\$gte"
 	val lt = "\$lt"
 	val lte = "\$lte"
+	val all = "\$all"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -597,5 +598,21 @@ class FilterExpressionTest : FunSpec({
 				}
 			""".trimIndent()
 		}
+	}
+
+	test("Operator $all") {
+		class User(
+			val grades: List<Int>,
+		)
+
+		filter {
+			User::grades containsAll listOf(1, 2, 3)
+		} shouldBeBson """
+			{
+				"grades": {
+					"$all": [1, 2, 3]
+				}
+			}
+		""".trimIndent()
 	}
 })

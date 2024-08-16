@@ -1,13 +1,10 @@
 package fr.qsh.ktmongo.dsl.expr
 
-import fr.qsh.ktmongo.dsl.KtMongoDsl
-import fr.qsh.ktmongo.dsl.LowLevelApi
+import fr.qsh.ktmongo.dsl.*
 import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
 import fr.qsh.ktmongo.dsl.expr.common.AbstractExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
-import fr.qsh.ktmongo.dsl.writeArray
-import fr.qsh.ktmongo.dsl.writeDocument
 import org.bson.BsonType
 import org.bson.BsonWriter
 import org.bson.codecs.configuration.CodecRegistry
@@ -1159,5 +1156,51 @@ class FilterExpression<T>(
 		}
 	}
 
+	// endregion
+	// region $all
+
+	/**
+	 * Selects documents where the value of a field is an array that contains all the specified [values].
+	 *
+	 * ### Example
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val grades: List<Int>
+	 * )
+	 *
+	 * collection.find {
+	 *     User::grades containsAll listOf(2, 3, 7)
+	 * }
+	 * ```
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/all/)
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	infix fun <V> KProperty1<T, V>.containsAll(values: Collection<V>) {
+		accept(ArrayAllExpressionNode(this.path().toString(), values, codec))
+	}
+
+	@LowLevelApi
+	private class ArrayAllExpressionNode<T>(
+		val path: String,
+		val values: Collection<T>,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		@LowLevelApi
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument(path) {
+				writer.writeArray("\$all") {
+					for (value in values)
+						writer.writeObject(value, codec)
+				}
+			}
+		}
+	}
+	
 	// endregion
 }

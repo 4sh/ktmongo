@@ -70,4 +70,5 @@ infix fun String.shouldBeBson(expected: String) {
 		.replace("\n", "")
 		.replace("\t", "")
 		.replace(",", ", ")
+		.replace("  ", " ")
 }
