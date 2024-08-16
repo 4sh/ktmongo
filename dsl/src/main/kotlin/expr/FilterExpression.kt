@@ -2,8 +2,8 @@ package fr.qsh.ktmongo.dsl.expr
 
 import fr.qsh.ktmongo.dsl.KtMongoDsl
 import fr.qsh.ktmongo.dsl.LowLevelApi
-import fr.qsh.ktmongo.dsl.expr.common.AbstractExpression
 import fr.qsh.ktmongo.dsl.expr.common.AbstractCompoundExpression
+import fr.qsh.ktmongo.dsl.expr.common.AbstractExpression
 import fr.qsh.ktmongo.dsl.expr.common.Expression
 import fr.qsh.ktmongo.dsl.path.PropertySyntaxScope
 import fr.qsh.ktmongo.dsl.writeArray
@@ -18,7 +18,71 @@ import kotlin.reflect.KProperty1
 /**
  * DSL for MongoDB operators that are used as predicates in conditions.
  *
- * For example, these operators are available when querying with `find`, or as the filter in `updateOne`.
+ * ### Example
+ *
+ * This expression type is available in multiple operators, most commonly `find`:
+ * ```kotlin
+ * class User(
+ *     val name: String,
+ *     val age: Int,
+ * )
+ *
+ * collection.find {
+ *     User::age gte 18
+ * }
+ * ```
+ *
+ * ### Beware of arrays!
+ *
+ * MongoDB operators do not discriminate between scalars and arrays.
+ * When an array is encountered, all operators attempt to match on the array itself.
+ * If the match fails, the operators attempt to match array elements.
+ *
+ * It is not possible to mimic this behavior in KtMongo while still keeping type-safety,
+ * so operators may behave strangely when arrays are encountered.
+ *
+ * Note that if the collection corresponds to the declared Kotlin type,
+ * these situations can never happen, as the Kotlin type system doesn't allow them to.
+ *
+ * When developers attempt to perform an operator on the entire array,
+ * they should use operators as normal:
+ * ```kotlin
+ * class User(
+ *     val name: String,
+ *     val favoriteNumbers: List<Int>
+ * )
+ *
+ * collection.find {
+ *     User::favoriteNumbers eq listOf(1, 2)
+ * }
+ * ```
+ * Developers should use the request above when they want to match a document similar to:
+ * ```json
+ * {
+ *     favoriteNumbers: [1, 2]
+ * }
+ * ```
+ * The following document will NOT match:
+ * ```json
+ * {
+ *     favoriteNumbers: [3]
+ * }
+ * ```
+ *
+ * However, due to MongoDB's behavior when encountering arrays, it should be noted
+ * that the following document WILL match:
+ * ```json
+ * {
+ *     favoriteNumbers: [
+ *         [3],
+ *         [1, 2],
+ *         [7, 2]
+ *     ]
+ * }
+ * ```
+ *
+ * To execute an operator on one of the elements of an array, see [any].
+ *
  */
 @KtMongoDsl
 class FilterExpression<T>(
@@ -103,10 +167,10 @@ class FilterExpression<T>(
 		}
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$and")
-				writer.writeArray {
-					for (child in declaredChildren) {
+			writer.writeName("\$and")
+			writer.writeArray {
+				for (child in declaredChildren) {
+					writer.writeDocument {
 						child.writeTo(writer)
 					}
 				}
@@ -164,10 +228,10 @@ class FilterExpression<T>(
 		}
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeName("\$or")
-				writer.writeArray {
-					for (child in declaredChildren) {
+			writer.writeName("\$or")
+			writer.writeArray {
+				for (child in declaredChildren) {
+					writer.writeDocument {
 						child.writeTo(writer)
 					}
 				}
@@ -223,10 +287,8 @@ class FilterExpression<T>(
 				?.let { PredicateInFilterExpression(target, it, codec) }
 
 		override fun write(writer: BsonWriter) {
-			writer.writeDocument {
-				writer.writeDocument(target) {
-					expression.writeTo(writer)
-				}
+			writer.writeDocument(target) {
+				expression.writeTo(writer)
 			}
 		}
 	}
@@ -677,7 +739,6 @@ class FilterExpression<T>(
 		this { gteNotNull(value) }
 	}
 
-
 	/**
 	 * Selects documents for which this field has a value strictly lesser than [value].
 	 *
@@ -849,6 +910,222 @@ class FilterExpression<T>(
 	@KtMongoDsl
 	fun <@OnlyInputTypes V> KProperty1<T, V>.isOneOf(vararg values: V) {
 		isOneOf(values.asList())
+	}
+
+	// endregion
+	// region $elemMatch
+
+	/**
+	 * Specify operators on array elements.
+	 *
+	 * ### Example
+	 *
+	 * Find any user who has 12 as one of their favorite numbers.
+	 *
+	 * ```kotlin
+	 * class User(
+	 *     val name: String,
+	 *     val favoriteNumbers: List<Int>
+	 * )
+	 *
+	 * collection.find {
+	 *     User::favoriteNumbers.any eq 12
+	 * }
+	 * ```
+	 *
+	 * ### Repeated usages will match different items
+	 *
+	 * Note that if `any` is used multiple times, it may test different items.
+	 * For example, the following request will match the following document:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::favoriteNumbers.any gt 2
+	 *     User::favoriteNumbers.any lte 7
+	 * }
+	 * ```
+	 * ```json
+	 * {
+	 *     "name": "Nicolas",
+	 *     "favoriteNumbers": [ 1, 9 ]
+	 * }
+	 * ```
+	 * Because 1 is less than 7, and 9 is greater than 2, the document is returned.
+	 *
+	 * If you want to apply multiple filters to the same item, use the [any] function.
+	 *
+	 * ### Arrays don't exist in finds!
+	 *
+	 * MongoDB operators do not discriminate between scalars and arrays.
+	 * When an array is encountered, all operators attempt to match on the array itself.
+	 * If the match fails, the operators attempt to match array elements.
+	 *
+	 * It is not possible to mimic this behavior in KtMongo while still keeping type-safety,
+	 * so KtMongo has different operators to filter a collection itself or its elements.
+	 *
+	 * As a consequence, the request:
+	 * ```kotlin
+	 * collection.find {
+	 *     User::favoriteNumbers.any eq 5
+	 * }
+	 * ```
+	 * will, as expected, match the following document:
+	 * ```json
+	 * {
+	 *     favoriteNumbers: [1, 4, 5, 10]
+	 * }
+	 * ```
+	 *
+	 * It is important to note that it WILL also match this document:
+	 * ```json
+	 * {
+	 *     favoriteNumbers: 5
+	 * }
+	 * ```
+	 *
+	 * Since this document doesn't conform to the Kotlin declared type `List<Int>`,
+	 * it is unlikely that such an element exists, but developers should keep it in mind.
+	 *
+	 * ### External resources
+	 *
+	 * - [Official document](https://www.mongodb.com/docs/manual/tutorial/query-arrays/)
+	 */
+	@KtMongoDsl
+	val <V> KProperty1<T, Collection<V>>.any: KProperty1<T, V>
+		@Suppress("UNCHECKED_CAST") // The type parameters are fake anyway
+		get() = this as KProperty1<T, V>
+
+	/**
+	 * Specify multiple operators on a single array element.
+	 *
+	 * ### Example
+	 *
+	 * Find students with a grade between 8 and 10, that may be eligible to perform
+	 * an exam a second time.
+	 *
+	 * ```kotlin
+	 * class Student(
+	 *     val name: String,
+	 *     val grades: List<Int>
+	 * )
+	 *
+	 * collection.find {
+	 *     Student::grades.any {
+	 *         gte(8)
+	 *         lte(10)
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * The following document will match because the grade 9 is in the interval.
+	 * ```json
+	 * {
+	 *     "name": "John",
+	 *     "grades": [9, 3]
+	 * }
+	 * ```
+	 *
+	 * The following document will NOT match, because none of the grades are in the interval.
+	 * ```json
+	 * {
+	 *     "name": "Lea",
+	 *     "grades": [18, 19]
+	 * }
+	 * ```
+	 *
+	 * If you want to perform multiple checks on different elements of an array,
+	 * see the [any] property.
+	 *
+	 * This function only allows specifying operators on array elements directly.
+	 * To specify operators on sub-fields of array elements, see [anyObject].
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/elemMatch/)
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun <V> KProperty1<T, Collection<V>>.any(block: PredicateExpression<V>.() -> Unit) {
+		accept(ElementMatchExpressionNode<V>(this.path().toString(), PredicateExpression<V>(codec).apply(block), codec))
+	}
+
+	/**
+	 * Specify multiple operators on fields of a single array element.
+	 *
+	 * ### Example
+	 *
+	 * Find customers who have a pet that is born this month, as they may be eligible for a discount.
+	 *
+	 * ```kotlin
+	 * class Customer(
+	 *     val name: String,
+	 *     val pets: List<Pet>,
+	 * )
+	 *
+	 * class Pet(
+	 *     val name: String,
+	 *     val birthMonth: Int
+	 * )
+	 *
+	 * val currentMonth = 3
+	 *
+	 * collection.find {
+	 *     Customer::pets.anyObject {
+	 *         Pet::birthMonth gte currentMonth
+	 *         Pet::birthMonth lte (currentMonth + 1)
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * The following document will match:
+	 * ```json
+	 * {
+	 *     "name": "Fred",
+	 *     "pets": [
+	 *         {
+	 *             "name": "Arthur",
+	 *             "birthMonth": 5
+	 *         },
+	 *         {
+	 *             "name": "Gwen",
+	 *             "birthMonth": 3
+	 *         }
+	 *     ]
+	 * }
+	 * ```
+	 * because the pet "Gwen" has a matching birth month.
+	 *
+	 * If you want to perform operators on the elements directly (not on their fields), use
+	 * [any] instead.
+	 *
+	 * ### External resources
+	 *
+	 * - [Official documentation](https://www.mongodb.com/docs/manual/reference/operator/query/elemMatch/)
+	 */
+	@OptIn(LowLevelApi::class)
+	@KtMongoDsl
+	fun <V> KProperty1<T, Collection<V>>.anyObject(block: FilterExpression<V>.() -> Unit) {
+		accept(ElementMatchExpressionNode<V>(this.path().toString(), FilterExpression<V>(codec).apply(block), codec))
+	}
+
+	@LowLevelApi
+	private class ElementMatchExpressionNode<T>(
+		val target: String,
+		val expression: Expression,
+		codec: CodecRegistry,
+	) : FilterExpressionNode(codec) {
+
+		override fun simplify(): AbstractExpression =
+			ElementMatchExpressionNode<T>(target, expression.simplify()
+				?: OrFilterExpressionNode<T>(emptyList(), codec), codec)
+
+		override fun write(writer: BsonWriter) {
+			writer.writeDocument(target) {
+				writer.writeName("\$elemMatch")
+				writer.writeStartDocument()
+				expression.writeTo(writer)
+				writer.writeEndDocument()
+			}
+		}
 	}
 
 	// endregion

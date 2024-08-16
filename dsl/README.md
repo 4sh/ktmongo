@@ -5,6 +5,7 @@
 ### Filter
 
 - [`$and`][fr.qsh.ktmongo.dsl.expr.FilterExpression.and]
+- [`$elemMatch`][fr.qsh.ktmongo.dsl.expr.FilterExpression.anyObject]
 - [`$eq`][fr.qsh.ktmongo.dsl.expr.FilterExpression.eq]
 - [`$exists`][fr.qsh.ktmongo.dsl.expr.FilterExpression.exists]
 - [`$gt`][fr.qsh.ktmongo.dsl.expr.FilterExpression.gt]

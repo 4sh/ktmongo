@@ -23,6 +23,10 @@ class FilterExpressionTest : FunSpec({
 	val type = "\$type"
 	val not = "\$not"
 	val isOneOf = "\$in"
+	val gt = "\$gt"
+	val gte = "\$gte"
+	val lt = "\$lt"
+	val lte = "\$lte"
 
 	context("Operator $eq") {
 		test("Integer") {
@@ -376,11 +380,6 @@ class FilterExpressionTest : FunSpec({
 	}
 
 	context("Comparison operators") {
-		val gt = "\$gt"
-		val gte = "\$gte"
-		val lt = "\$lt"
-		val lte = "\$lte"
-
 		test("int $gt") {
 			filter {
 				User::age gt 12
@@ -425,6 +424,176 @@ class FilterExpressionTest : FunSpec({
 					"age": {
 						"$lte": 12
 					}
+				}
+			""".trimIndent()
+		}
+	}
+
+	context("Array operators") {
+		val elemMatch = "\$elemMatch"
+
+		class Pet(
+			val name: String,
+			val age: Int,
+		)
+
+		class User(
+			val scores: List<Int>,
+			val pets: List<Pet>,
+		)
+
+		test("Test on an array element") {
+			filter {
+				User::scores.any eq 12
+			} shouldBeBson """
+				{
+					"scores": {
+						"$eq": 12
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Test on different array elements") {
+			filter {
+				User::scores.any gt 12
+				User::scores.any lte 15
+			} shouldBeBson """
+				{
+					"$and": [
+						{
+							"scores": {
+								"$gt": 12
+							}
+						},
+						{
+							"scores": {
+								"$lte": 15
+							}
+						}
+					]
+				}
+			""".trimIndent()
+		}
+
+		test("Test on a single array element") {
+			filter {
+				User::scores.any {
+					gt(12)
+					lte(15)
+				}
+			} shouldBeBson """
+				{
+					"scores": {
+						"$elemMatch": {
+							"$gt": 12,
+							"$lte": 15
+						}
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Test on subfields of different array elements") {
+			filter {
+				User::pets.any / Pet::age gt 15
+				User::pets.any / Pet::age lte 18
+			} shouldBeBson """
+				{
+					"$and": [
+						{
+							"pets.age": {
+								"$gt": 15
+							}
+						},
+						{
+							"pets.age": {
+								"$lte": 18
+							}
+						}
+					]
+				}
+			""".trimIndent()
+		}
+
+		test("Test on subfields of a single array element") {
+			filter {
+				User::pets.anyObject {
+					Pet::age gt 15
+					Pet::age lte 18
+				}
+			} shouldBeBson """
+				{
+					"pets": {
+						"$elemMatch": {
+							"$and": [
+								{
+									"age": {
+										"$gt": 15
+									}
+								},
+								{
+									"age": {
+										"$lte": 18
+									}
+								}
+							]
+						}
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Test on a single subfield of a single array element") {
+			filter {
+				User::pets.anyObject {
+					Pet::age {
+						gt(15)
+						lte(18)
+					}
+				}
+			} shouldBeBson """
+				{
+					"pets": {
+						"$elemMatch": {
+							"age": {
+								"$gt": 15,
+								"$lte": 18
+							}
+						}
+					}
+				}
+			""".trimIndent()
+		}
+
+		test("Everything combined") {
+			filter {
+				User::pets.any / Pet::age gt 3
+				User::pets.anyObject {
+					Pet::age gte 1
+					Pet::name eq "Chocolat"
+				}
+			} shouldBeBson """
+				{
+					"$and": [
+						{
+							"pets.age": {"$gt": 3}
+						},
+						{
+							"pets": {
+								"$elemMatch": {
+									"$and": [
+										{
+											"age": {"$gte": 1}
+										},
+										{
+											"name": {"$eq": "Chocolat"}
+										}
+									]
+								}
+							}
+						}
+					]
 				}
 			""".trimIndent()
 		}
