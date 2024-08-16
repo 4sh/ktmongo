@@ -214,9 +214,13 @@ class FilterExpression<T>(
 	@LowLevelApi
 	private class PredicateInFilterExpression(
 		val target: String,
-		val expression: PredicateExpression<*>,
+		val expression: Expression,
 		codec: CodecRegistry,
 	) : FilterExpressionNode(codec) {
+
+		override fun simplify(): AbstractExpression? =
+			expression.simplify()
+				?.let { PredicateInFilterExpression(target, it, codec) }
 
 		override fun write(writer: BsonWriter) {
 			writer.writeDocument {
