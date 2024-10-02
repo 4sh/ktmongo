@@ -2,6 +2,10 @@
 template: home.html
 ---
 
+# Project status
+
+This repository was a prototype for a possible new DSL. The prototype phase has ended, and the project has been transferred to [OpenSavvy](https://gitlab.com/opensavvy/ktmongo).
+
 # Towards the future of MongoDB in Kotlin
 
 In 2016, Julien Buret created [KMongo](https://github.com/Litote/kmongo), a Kotlin driver for MongoDB based on the official Java driver. KMongo added a lot of syntax sugar, making complex queries much more readable and less error-prone thanks to improved type safety:

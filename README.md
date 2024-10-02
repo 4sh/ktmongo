@@ -2,6 +2,8 @@
 
 > _Pronounced "cat-mongo"._
 
+> **KtMongo was intended as a prototype. It has reached its objectives.** [Further development has been transferred to OpenSavvy](https://gitlab.com/opensavvy/ktmongo).
+
 In 2016, Julien Buret created KMongo, a Kotlin driver for MongoDB, based on the official Java driver. KMongo added a lot of syntax sugar, making complex queries much more readable and less error-prone thanks to improved type safety:
 ```java
 // Official Java driver
@@ -46,7 +48,9 @@ To learn more about the changes we have made, see [the KMongo migration guide](d
 
 ## What's the current state of the project?
 
-This project is currently a **prototype**. Many features are missing, and implemented features may change at any time. Use at your own risk!
+This project is a **prototype**.
+
+Development has been transferred to [OpenSavvy](https://gitlab.com/opensavvy/ktmongo) (with the same license).
 
 ## Where can I learn more?
 
